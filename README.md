@@ -17,6 +17,8 @@ Pause and resume desktop media when an **Astro A50 X** headset docks, undocks, o
 
 Architecture: [docs/architecture/](docs/architecture/) · [ADR-002](docs/architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](docs/architecture/ADR-003-a50x-multi-mpris-control.md).
 
+Until the GitHub remote exists, use the local clone path. See [docs/PUBLISH.md](docs/PUBLISH.md).
+
 ## Requirements
 
 - Linux desktop with user systemd, PipeWire or PulseAudio (`pactl`)
