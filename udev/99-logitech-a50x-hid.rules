@@ -1,0 +1,6 @@
+# Allow the active seat user (and plugdev) to read A50 X HID for dock/power signals.
+# Install (once, from clone root):
+#   sudo cp udev/99-logitech-a50x-hid.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload
+#   sudo udevadm trigger -c add -s hidraw
+KERNEL=="hidraw*", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="0b0b", MODE="0660", GROUP="plugdev", TAG+="uaccess"
