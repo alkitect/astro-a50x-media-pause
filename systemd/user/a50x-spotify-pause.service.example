@@ -1,0 +1,21 @@
+[Unit]
+Description=Pause/resume Spotify on Astro A50X off-match (or HID when enabled)
+After=pipewire.service wireplumber.service pipewire-pulse.service default.target
+Wants=pipewire-pulse.service
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+Environment=XDG_RUNTIME_DIR=%t
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=LD_LIBRARY_PATH=%h/.local/lib
+StandardOutput=journal
+StandardError=journal
+ExecStart=%h/.local/bin/a50x-spotify-pause
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
