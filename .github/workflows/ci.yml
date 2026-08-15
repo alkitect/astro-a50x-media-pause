@@ -13,8 +13,8 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: bash -n
-        run: bash -n scripts/*.sh scripts/lib/*.sh
+        run: find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
       - name: intent fixtures
-        run: ./scripts/run-intent-fixtures.sh
+        run: ./scripts/test/run-intent-fixtures.sh
       - name: ci-check
         run: ./scripts/ci-check.sh

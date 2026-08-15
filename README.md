@@ -17,7 +17,7 @@ Pause and resume desktop media when an **Astro A50 X** headset docks, undocks, o
 
 Architecture: [docs/architecture/](docs/architecture/) · [ADR-002](docs/architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](docs/architecture/ADR-003-a50x-multi-mpris-control.md).
 
-Until the GitHub remote exists, use the local clone path. See [docs/PUBLISH.md](docs/PUBLISH.md).
+Clone: [github.com/alkitect/astro-a50x-media-pause](https://github.com/alkitect/astro-a50x-media-pause). See [docs/PUBLISH.md](docs/PUBLISH.md).
 
 ## Requirements
 
@@ -28,9 +28,9 @@ Until the GitHub remote exists, use the local clone path. See [docs/PUBLISH.md](
 ## Install
 
 ```bash
-git clone https://github.com/<you>/astro-a50x-media-pause.git
+git clone https://github.com/alkitect/astro-a50x-media-pause.git
 cd astro-a50x-media-pause
-./scripts/install-to-local.sh
+./scripts/install-to-local.sh          # add --with-tools for HID probes/scorers
 sudo cp udev/99-logitech-a50x-hid.rules /etc/udev/rules.d/
 sudo udevadm control --reload
 sudo udevadm trigger -c add -s hidraw
@@ -59,11 +59,13 @@ journalctl --user -t a50x-spotify-pause -f
 ## Develop / CI
 
 ```bash
-bash -n scripts/*.sh scripts/lib/*.sh
-./scripts/run-intent-fixtures.sh
+find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
+./scripts/test/run-intent-fixtures.sh
 ./scripts/ci-check.sh
 ```
 
+Layout: product CLIs under `scripts/`; libs in `scripts/lib/`; fixtures in `scripts/test/`; research probes/scorers in `scripts/tools/` (install with `--with-tools`).
+
 ## Version
 
-Current watcher: `WATCHER_VERSION=f4-mpris-multi-1` · release tag **v0.5.0** (`PLAYER_MODE=all` experimental until v1.0).
+Current watcher: `WATCHER_VERSION=f4-mpris-multi-1` · release tag **v0.6.0** (`PLAYER_MODE=all` experimental until v1.0).

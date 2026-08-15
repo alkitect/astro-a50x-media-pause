@@ -25,8 +25,8 @@ If you change pause/resume semantics, update:
 Run before PR:
 
 ```bash
-bash -n scripts/*.sh scripts/lib/*.sh
-./scripts/run-intent-fixtures.sh
+find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
+./scripts/test/run-intent-fixtures.sh
 ./scripts/ci-check.sh
 ```
 
