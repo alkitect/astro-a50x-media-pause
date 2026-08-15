@@ -86,3 +86,5 @@ See also [docs/PUBLISH.md](docs/PUBLISH.md).
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+Optional tip jar: [ko-fi.com/alkitect](https://ko-fi.com/alkitect)
