@@ -15,3 +15,21 @@ git push origin v0.6.1
 
 Repo URL: `https://github.com/alkitect/astro-a50x-media-pause`
 
+## GitHub About
+
+| Field | Value |
+|-------|--------|
+| Description | Pause/resume MPRIS media when an Astro A50 X docks or soft power-cycles (Linux) |
+| Website | https://ko-fi.com/alkitect |
+| Topics | `linux`, `astro`, `logitech`, `mpris`, `pipewire`, `hid`, `systemd` |
+
+```bash
+gh repo edit alkitect/astro-a50x-media-pause \
+  --description "Pause/resume MPRIS media when an Astro A50 X docks or soft power-cycles (Linux)" \
+  --homepage "https://ko-fi.com/alkitect" \
+  --add-topic linux --add-topic astro --add-topic logitech \
+  --add-topic mpris --add-topic pipewire --add-topic hid --add-topic systemd
+```
+
+Sidebar (manual if shown): Releases ✓ · Packages ✗ · Deployments ✗
+
