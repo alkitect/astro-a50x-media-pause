@@ -2,6 +2,8 @@
 
 Pause and resume desktop media when an **Astro A50 X** headset docks, undocks, or soft power-cycles — via HID on the Logitech USB cradle (`046d:0b0b`) and MPRIS (`playerctl`).
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/alkitect)
+
 **Repo name:** `astro-a50x-media-pause`. **Installed names stay** `a50x-spotify-pause` (binary, systemd user unit, XDG config dir).
 
 ## What this does
