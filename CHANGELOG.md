@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 0.6.1 — 2026-08-15
+- CI: isolate `XDG_CONFIG_HOME` / `XDG_STATE_HOME` under temp `HOME` in `ci-check.sh` (same Actions pitfall as graceful-shutdown); bump `actions/checkout` to v5.
+
 ## 0.6.0 — 2026-08-15
 - Variant A layout: `scripts/lib/{hid,mpris}.sh`, `scripts/test/` fixtures, `scripts/tools/` research probes; `install-to-local.sh --with-tools` opt-in; lib-aware verify + ci-check install contract.
 

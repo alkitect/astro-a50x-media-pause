@@ -68,7 +68,7 @@ find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
 
 Layout: product CLIs under `scripts/`; libs in `scripts/lib/`; fixtures in `scripts/test/`; research probes/scorers in `scripts/tools/` (install with `--with-tools`).
 
-Current watcher: `WATCHER_VERSION=f4-mpris-multi-1` · release tag **v0.6.0** (`PLAYER_MODE=all` experimental until v1.0).
+Current watcher: `WATCHER_VERSION=f4-mpris-multi-1` · release tag **v0.6.1** (`PLAYER_MODE=all` experimental until v1.0).
 
 Architecture: [docs/architecture/](docs/architecture/) · [ADR-002](docs/architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](docs/architecture/ADR-003-a50x-multi-mpris-control.md).
 
