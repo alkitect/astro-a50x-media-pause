@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Read-only status for astro-a50x-spotify-pause (no pause/play side effects).
+# Read-only status for astro-a50x-media-pause (no pause/play side effects).
 set -euo pipefail
 
 CFG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/astro-a50x-spotify-pause"
@@ -19,7 +19,7 @@ warn() { echo "WARN: $*"; }
 fail() { echo "FAIL: $*"; rc=1; }
 ok() { echo "OK: $*"; }
 
-echo "=== astro-a50x-spotify-pause verify ==="
+echo "=== astro-a50x-media-pause verify ==="
 
 if command -v pactl >/dev/null 2>&1; then
   ok "pactl present"
@@ -216,13 +216,15 @@ if [[ -x "${BIN}" ]]; then
   if [[ -z "${TOPIC_ROOT}" ]]; then
     HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     if [[ -f "${HERE}/a50x-spotify-pause.sh" && -d "${HERE}/lib" ]]; then
-      # Running from clone: scripts/verify-*.sh
       TOPIC_ROOT="$(cd "${HERE}/.." && pwd)"
-    elif [[ -f "${HERE}/../scripts/a50x-spotify-pause.sh" ]]; then
-      TOPIC_ROOT="$(cd "${HERE}/.." && pwd)"
+    fi
+    if [[ -z "${TOPIC_ROOT}" ]]; then
+      fail "repo root unknown — set A50X_TOPIC_ROOT to the clone path"
     fi
   fi
   REPO_SCRIPT="${TOPIC_ROOT:+${TOPIC_ROOT}/scripts/a50x-spotify-pause.sh}"
+  LIB_DIR="${HOME}/.local/bin/a50x-spotify-pause-lib"
+  REPO_LIB="${TOPIC_ROOT:+${TOPIC_ROOT}/scripts/lib}"
   if [[ -n "${REPO_SCRIPT}" && -f "${REPO_SCRIPT}" ]]; then
     bin_hash="$(sha256sum "${BIN}" | awk '{print $1}')"
     repo_hash="$(sha256sum "${REPO_SCRIPT}" | awk '{print $1}')"
@@ -231,28 +233,57 @@ if [[ -x "${BIN}" ]]; then
     else
       fail "deployed binary != repo script (run install-to-local.sh)"
     fi
+    if [[ -d "${REPO_LIB}" ]]; then
+      for repo_lib in "${REPO_LIB}"/*.sh; do
+        [[ -f "${repo_lib}" ]] || continue
+        base="$(basename "${repo_lib}")"
+        inst_lib="${LIB_DIR}/${base}"
+        if [[ ! -f "${inst_lib}" ]]; then
+          fail "installed lib missing: ${inst_lib} (run install-to-local.sh)"
+          continue
+        fi
+        rh="$(sha256sum "${repo_lib}" | awk '{print $1}')"
+        ih="$(sha256sum "${inst_lib}" | awk '{print $1}')"
+        if [[ "${rh}" == "${ih}" ]]; then
+          ok "lib ${base} matches repo (${rh:0:12}…)"
+        else
+          fail "lib ${base} != repo (run install-to-local.sh)"
+        fi
+      done
+    fi
+    # Grep across watcher + installed libs (strings moved out of monolith).
+    grep_deployed() {
+      local pat="$1"
+      grep -qE "${pat}" "${BIN}" 2>/dev/null && return 0
+      local f
+      for f in "${LIB_DIR}"/*.sh; do
+        [[ -f "${f}" ]] || continue
+        grep -qE "${pat}" "${f}" 2>/dev/null && return 0
+      done
+      return 1
+    }
     if grep -q 'WATCHER_VERSION=f4-mpris-multi-1' "${BIN}"; then
       ok "WATCHER_VERSION=f4-mpris-multi-1"
     else
       fail "installed binary missing WATCHER_VERSION=f4-mpris-multi-1 (run install-to-local.sh)"
     fi
-    if grep -qE 'do_pause "sink-input-remove-soft"' "${BIN}"; then
-      fail "installed binary still pauses via sink-input-remove-soft"
+    if grep_deployed 'do_pause "sink-input-remove-soft"'; then
+      fail "deployed tree still pauses via sink-input-remove-soft"
     else
       ok "retired disable_soft pause path absent"
     fi
-    if grep -q 'hid-dock-chg-rise' "${BIN}" && grep -q 'hid_mode=battery_get' "${BIN}"; then
+    if grep_deployed 'hid-dock-chg-rise' && grep_deployed 'hid_mode=battery_get|HID_BATTERY_GET'; then
       ok "F3 battery GET HID path present"
     else
-      fail "installed binary missing F3 hid-dock-chg / battery_get path"
+      fail "deployed tree missing F3 hid-dock-chg / battery_get path"
     fi
-    if grep -q 'PLAYER_MODE' "${BIN}" && grep -q 'we_paused_players' "${BIN}"; then
+    if grep_deployed 'PLAYER_MODE' && grep_deployed 'we_paused_players'; then
       ok "multi-MPRIS PLAYER_MODE / we_paused_players present"
     else
-      fail "installed binary missing PLAYER_MODE / we_paused_players"
+      fail "deployed tree missing PLAYER_MODE / we_paused_players"
     fi
   else
-    fail "repo script not found for hash compare — set A50X_TOPIC_ROOT to the clone root (e.g. A50X_TOPIC_ROOT=\$PWD)"
+    warn "repo script not found for hash compare (set A50X_TOPIC_ROOT)"
   fi
 else
   warn "binary missing: ${BIN}"

@@ -14,7 +14,6 @@ Semantics: [IMPLEMENTATION.md](../IMPLEMENTATION.md).
 | Dock `dock_chg`, soft-off/on prefixes, GET `06` never soft-on, episode latch | ADR-002 |
 | `PLAYER_MODE`, `we_paused_players`, A50 gate matrix, non-MPRIS limits | ADR-003 |
 | Deploy paths, SLOs, kill-switch | This C1–C3 + root README |
-
 ## C1 — System context
 
 ```mermaid
@@ -48,8 +47,10 @@ flowchart TB
   subgraph userSpace [User_session]
     unit[systemd_user_a50x-spotify-pause]
     bin[a50x-spotify-pause_bash]
+    libs[a50x-spotify-pause-lib]
     cfg[config_XDG]
     unit --> bin
+    bin --> libs
     bin --> cfg
   end
   subgraph host [Host]
@@ -64,10 +65,13 @@ flowchart TB
 
 | Container | Path / unit |
 |-----------|-------------|
-| Watcher binary | `~/.local/bin/a50x-spotify-pause` ← this repo `scripts/` |
+| Watcher binary | `~/.local/bin/a50x-spotify-pause` ← topic scripts |
+| Watcher libs | `~/.local/bin/a50x-spotify-pause-lib/` (`hid.sh`, `mpris.sh`, classifier) |
 | User unit | `~/.config/systemd/user/a50x-spotify-pause.service` |
 | Config | `~/.config/astro-a50x-spotify-pause/config` (`PLAYER_MODE`, `PLAYER`, `SINK_MATCH`, …) |
 | Udev | `/etc/udev/rules.d/99-logitech-a50x-hid.rules` |
+
+**Structure note (no new ADR):** Variant A file split only — ADR-002 / ADR-003 semantics unchanged.
 
 ## C3 — Watcher components (HID + PW)
 
@@ -108,16 +112,24 @@ flowchart TD
 | `single` | `player_on_match_sink` (`PLAYER`) | `$PLAYER` |
 | `all` | `any_on_match_sink` | All Playing from `playerctl -l` |
 
+| Script module | Role |
+|---------------|------|
+| `scripts/a50x-spotify-pause.sh` | Entry: config, PW subscribe/latch, sources libs |
+| `scripts/lib/hid.sh` | ADR-002 triggers: battery GET `dock_chg`, soft-off/on |
+| `scripts/lib/mpris.sh` | ADR-003 control + shared pause orchestration (Variant A peel; not a pure plane) |
+| `scripts/lib/classify-remove-intent.sh` | Pure F0 remove-intent classifier |
+| `scripts/tools/*` | Closed research ladder; install with `--with-tools` only |
+
 ## Research ladder (closed)
 
 | Gate | Outcome |
 |------|---------|
 | F2c `online_fall` / F2d GET byte-diff | **FAIL** — soft-disable keeps answering GET |
 | F2e passive prefixes | **PASS** — exclusive OFF/ON frames |
-| F3 / F4 dock wire | **PASS** (upstream host) |
-| F3b / F4b soft-off | **PASS** (upstream host) |
-| F3c / F4c soft-on | **PASS** (upstream host) |
-| F4-multi (`PLAYER_MODE=all`) | Human matrix — pending until v1.0 |
+| F3 / F4 dock wire | **PASS** |
+| F3b / F4b soft-off | **PASS** |
+| F3c / F4c soft-on | **PASS** |
+| F4-multi (`PLAYER_MODE=all`) | Human matrix — see [acceptance-matrix](../acceptance-matrix.md) |
 
 ## Kill-switch
 

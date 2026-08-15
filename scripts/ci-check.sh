@@ -12,7 +12,7 @@ _p4='topics/astro-a50x-spotify-pause'
 FORBIDDEN_RE="${_p1}${_p2}|${_p3}|${_p4}"
 
 hits="$(grep -rE "${FORBIDDEN_RE}" \
-  --include='*.sh' --include='*.md' --include='*.rules' . \
+  --include='*.sh' --include='*.md' --include='*.rules' --include='*.py' . \
   --exclude-dir=.git --exclude-dir=__pycache__ \
   --exclude='ci-check.sh' 2>/dev/null || true)"
 if [[ -n "${hits}" ]]; then
@@ -31,12 +31,24 @@ grep -qE '^ENABLED=0' config/example.config
 grep -qE '^DRY_RUN=1' config/example.config
 grep -qE '^PLAYER_MODE=single' config/example.config
 
+find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
+./scripts/test/run-intent-fixtures.sh
+
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "${tmp}"; }
 trap cleanup EXIT
 HOME="${tmp}" "${ROOT}/scripts/install-to-local.sh"
 test -x "${tmp}/.local/bin/a50x-spotify-pause"
 grep -q 'WATCHER_VERSION=f4-mpris-multi-1' "${tmp}/.local/bin/a50x-spotify-pause"
+for lib in classify-remove-intent.sh hid.sh mpris.sh; do
+  test -f "${tmp}/.local/bin/a50x-spotify-pause-lib/${lib}"
+done
+for tool in a50x-hid-probe a50x-hid-battery-probe score-a50x-hid-batt-bytes score-a50x-hid-passive-power; do
+  test ! -e "${tmp}/.local/bin/${tool}"
+done
+
+HOME="${tmp}" "${ROOT}/scripts/install-to-local.sh" --with-tools
+test -x "${tmp}/.local/bin/a50x-hid-probe"
 
 # Versioning gate (alkitect public extracts)
 if [[ -f docs/PUBLISH.md ]] && grep -qF 'RC-BEFORE-1.0' docs/PUBLISH.md; then

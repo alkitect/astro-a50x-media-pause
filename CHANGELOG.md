@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 0.6.0 — 2026-08-15
+- Variant A layout: `scripts/lib/{hid,mpris}.sh`, `scripts/test/` fixtures, `scripts/tools/` research probes; `install-to-local.sh --with-tools` opt-in; lib-aware verify + ci-check install contract.
+
 ## 0.5.0 — 2026-08-14
 
 - Initial public extract from private Linux customization work (`WATCHER_VERSION=f4-mpris-multi-1`).

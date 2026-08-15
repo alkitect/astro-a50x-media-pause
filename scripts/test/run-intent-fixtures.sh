@@ -3,18 +3,15 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "${HERE}/lib/classify-remove-intent.sh" ]]; then
+if [[ -f "${HERE}/../lib/classify-remove-intent.sh" ]]; then
   # shellcheck disable=SC1091
-  source "${HERE}/lib/classify-remove-intent.sh"
+  source "${HERE}/../lib/classify-remove-intent.sh"
 elif [[ -f "${HERE}/a50x-spotify-pause-lib/classify-remove-intent.sh" ]]; then
   # shellcheck disable=SC1091
   source "${HERE}/a50x-spotify-pause-lib/classify-remove-intent.sh"
 elif [[ -f "${HOME}/.local/bin/a50x-spotify-pause-lib/classify-remove-intent.sh" ]]; then
   # shellcheck disable=SC1091
   source "${HOME}/.local/bin/a50x-spotify-pause-lib/classify-remove-intent.sh"
-elif [[ -f "${HERE}/../scripts/lib/classify-remove-intent.sh" ]]; then
-  # shellcheck disable=SC1091
-  source "${HERE}/../scripts/lib/classify-remove-intent.sh"
 else
   echo "Cannot find classify-remove-intent.sh" >&2
   exit 1

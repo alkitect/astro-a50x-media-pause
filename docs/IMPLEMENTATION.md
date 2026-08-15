@@ -29,7 +29,7 @@ Soft-disable/dock does **not** remove A50 USB sinks. `sink-input remove` also fi
 | `WATCHER_VERSION` | `f4-mpris-multi-1` |
 | `HID_MATCH_HEX` | Deprecated — ignored |
 
-Classifier: [lib/classify-remove-intent.sh](../scripts/lib/classify-remove-intent.sh). Fixtures: [run-intent-fixtures.sh](../scripts/run-intent-fixtures.sh).
+Layout: watcher entry [a50x-spotify-pause.sh](../scripts/a50x-spotify-pause.sh) sources [lib/mpris.sh](../scripts/lib/mpris.sh) (MPRIS + shared pause orchestration) and [lib/hid.sh](../scripts/lib/hid.sh) (ADR-002 triggers). Classifier: [lib/classify-remove-intent.sh](../scripts/lib/classify-remove-intent.sh). Fixtures: [test/run-intent-fixtures.sh](../scripts/test/run-intent-fixtures.sh). Research tools: [scripts/tools/](../scripts/tools/) (`install-to-local.sh --with-tools`). Structure-only split — no new ADR.
 
 Architecture: [a50x-spotify-pause.md](architecture/a50x-spotify-pause.md) · [ADR-002](architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](architecture/ADR-003-a50x-multi-mpris-control.md).
 

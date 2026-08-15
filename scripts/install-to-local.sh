@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install A50X Spotify pause/resume watcher.
-# Usage: install-to-local.sh [--enable-automation]
+# Usage: install-to-local.sh [--with-tools] [--enable-automation]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -8,13 +8,16 @@ BIN="${HOME}/.local/bin"
 CFG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/astro-a50x-spotify-pause"
 SYSTEMD_USER="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user"
 ENABLE_AUTOMATION=0
+WITH_TOOLS=0
 
 for arg in "$@"; do
   case "${arg}" in
     --enable-automation) ENABLE_AUTOMATION=1 ;;
+    --with-tools) WITH_TOOLS=1 ;;
     -h|--help)
-      echo "Usage: $(basename "$0") [--enable-automation]"
-      echo "  Installs watcher + unit. Does not start Spotify or pause playback."
+      echo "Usage: $(basename "$0") [--with-tools] [--enable-automation]"
+      echo "  Installs watcher + libs + unit + fixtures. Does not start Spotify or pause playback."
+      echo "  --with-tools also installs HID probes + scorers (research / matrix)."
       echo "  --enable-automation requires ENABLED=1 DRY_RUN=0 and pactl+playerctl."
       exit 0
       ;;
@@ -30,16 +33,18 @@ mkdir -p "${BIN}" "${CFG_DIR}" "${SYSTEMD_USER}"
 install -m0755 "${ROOT}/scripts/a50x-spotify-pause.sh" "${BIN}/a50x-spotify-pause"
 install -m0755 "${ROOT}/scripts/discover-a50x-sink.sh" "${BIN}/discover-a50x-sink"
 install -m0755 "${ROOT}/scripts/verify-a50x-spotify-pause.sh" "${BIN}/verify-a50x-spotify-pause"
-install -m0755 "${ROOT}/scripts/a50x-hid-probe.sh" "${BIN}/a50x-hid-probe"
-install -m0755 "${ROOT}/scripts/a50x-hid-battery-probe.sh" "${BIN}/a50x-hid-battery-probe"
-install -m0755 "${ROOT}/scripts/score-a50x-hid-batt-bytes.py" "${BIN}/score-a50x-hid-batt-bytes"
-install -m0755 "${ROOT}/scripts/score-a50x-hid-passive-power.py" "${BIN}/score-a50x-hid-passive-power"
-install -m0755 "${ROOT}/scripts/run-intent-fixtures.sh" "${BIN}/a50x-intent-fixtures"
+install -m0755 "${ROOT}/scripts/test/run-intent-fixtures.sh" "${BIN}/a50x-intent-fixtures"
 mkdir -p "${BIN}/a50x-spotify-pause-lib"
-install -m0644 "${ROOT}/scripts/lib/classify-remove-intent.sh" \
-  "${BIN}/a50x-spotify-pause-lib/classify-remove-intent.sh"
-# Allow installed watcher to source lib from sibling dir when present.
-# (Watcher also inlines a fallback classifier.)
+for lib in "${ROOT}/scripts/lib/"*.sh; do
+  install -m0644 "${lib}" "${BIN}/a50x-spotify-pause-lib/$(basename "${lib}")"
+done
+
+if [[ "${WITH_TOOLS}" -eq 1 ]]; then
+  install -m0755 "${ROOT}/scripts/tools/a50x-hid-probe.sh" "${BIN}/a50x-hid-probe"
+  install -m0755 "${ROOT}/scripts/tools/a50x-hid-battery-probe.sh" "${BIN}/a50x-hid-battery-probe"
+  install -m0755 "${ROOT}/scripts/tools/score-a50x-hid-batt-bytes.py" "${BIN}/score-a50x-hid-batt-bytes"
+  install -m0755 "${ROOT}/scripts/tools/score-a50x-hid-passive-power.py" "${BIN}/score-a50x-hid-passive-power"
+fi
 
 migrate_config() {
   local cfg="$1"
@@ -83,11 +88,16 @@ echo "Installed:"
 echo "  ${BIN}/a50x-spotify-pause"
 echo "  ${BIN}/discover-a50x-sink"
 echo "  ${BIN}/verify-a50x-spotify-pause"
-echo "  ${BIN}/a50x-hid-probe"
-echo "  ${BIN}/a50x-hid-battery-probe"
-echo "  ${BIN}/score-a50x-hid-batt-bytes"
-echo "  ${BIN}/score-a50x-hid-passive-power"
 echo "  ${BIN}/a50x-intent-fixtures"
+echo "  ${BIN}/a50x-spotify-pause-lib/*.sh"
+if [[ "${WITH_TOOLS}" -eq 1 ]]; then
+  echo "  ${BIN}/a50x-hid-probe"
+  echo "  ${BIN}/a50x-hid-battery-probe"
+  echo "  ${BIN}/score-a50x-hid-batt-bytes"
+  echo "  ${BIN}/score-a50x-hid-passive-power"
+else
+  echo "  (research tools skipped — pass --with-tools to install)"
+fi
 echo "  ${CFG_DIR}/config"
 echo "  ${SYSTEMD_USER}/a50x-spotify-pause.service"
 echo ""
