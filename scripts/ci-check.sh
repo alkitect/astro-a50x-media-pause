@@ -55,7 +55,12 @@ find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "${tmp}"; }
 trap cleanup EXIT
-HOME="${tmp}" "${ROOT}/scripts/install-to-local.sh"
+# Export so inherited XDG_* from the runner cannot escape the temp HOME
+# (Actions often sets XDG_CONFIG_HOME; HOME=prefix alone is not enough).
+export HOME="${tmp}"
+export XDG_CONFIG_HOME="${tmp}/.config"
+export XDG_STATE_HOME="${tmp}/.local/state"
+"${ROOT}/scripts/install-to-local.sh"
 test -x "${tmp}/.local/bin/a50x-spotify-pause"
 grep -q 'WATCHER_VERSION=f4-mpris-multi-1' "${tmp}/.local/bin/a50x-spotify-pause"
 for lib in classify-remove-intent.sh hid.sh mpris.sh; do
@@ -64,8 +69,10 @@ done
 for tool in a50x-hid-probe a50x-hid-battery-probe score-a50x-hid-batt-bytes score-a50x-hid-passive-power; do
   test ! -e "${tmp}/.local/bin/${tool}"
 done
+test -f "${tmp}/.config/astro-a50x-spotify-pause/config" \
+  || { echo "ci-check: config not under tmp HOME (XDG isolation broken?)" >&2; exit 1; }
 
-HOME="${tmp}" "${ROOT}/scripts/install-to-local.sh" --with-tools
+"${ROOT}/scripts/install-to-local.sh" --with-tools
 test -x "${tmp}/.local/bin/a50x-hid-probe"
 
 # Versioning gate (alkitect public extracts)
