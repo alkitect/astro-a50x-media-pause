@@ -1,4 +1,4 @@
-# Astro A50X media pause — architecture (C1–C3)
+# Logitech Astro A50 X media pause — architecture (C1–C3)
 
 Operational tree: this repository (`scripts/`, `config/`, `systemd/`, `udev/`).  
 HID triggers: [ADR-002](ADR-002-a50x-hid-dock-and-soft-power.md).  
@@ -19,10 +19,10 @@ Semantics: [IMPLEMENTATION.md](../IMPLEMENTATION.md).
 ```mermaid
 flowchart LR
   user[User]
-  watcher[A50X_Media_Pause]
+  watcher["A50 X media pause"]
   mpris[MPRIS_players]
   pw[PipeWire_Pulse]
-  cradle[A50X_USB_cradle_hidraw]
+  cradle["A50 X USB cradle hidraw"]
   user -->|dock_undock_power| cradle
   user -->|listen| mpris
   watcher -->|playerctl_pause_play_N| mpris
@@ -35,10 +35,10 @@ flowchart LR
 | Actor / system | Role |
 |----------------|------|
 | User | Docks/undocks headset; soft-disables (power); plays media |
-| A50X Media Pause | User systemd watcher — pause/resume MPRIS on confirmed disable/enable (`PLAYER_MODE=single\|all`) |
+| A50 X media pause | User systemd watcher — pause/resume MPRIS on confirmed disable/enable (`PLAYER_MODE=single\|all`) |
 | MPRIS players | Session bus players via `playerctl` (Spotify default; browsers/VLC when `all`) |
 | PipeWire | Sinks / sink-inputs; off-match is secondary / late for soft-disable |
-| A50X cradle hidraw | Logitech `046d:0b0b` — battery GET + passive interrupts |
+| A50 X cradle hidraw | Logitech `046d:0b0b` — battery GET + passive interrupts |
 
 ## C2 — Containers (deployables)
 

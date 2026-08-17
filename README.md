@@ -1,12 +1,12 @@
-# Astro A50X media pause
+# Logitech Astro A50 X media pause
 
-Pause and resume desktop media when an **Astro A50 X** headset docks, undocks, or soft power-cycles — without hunting for the right player window.
+Pause and resume desktop media when a **Logitech Astro A50 X** headset docks, undocks, or soft power-cycles — without hunting for the right player window.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/alkitect)
 
 ## What this does
 
-Docking or soft-powering an Astro A50 X should pause what’s playing and resume when you come back. Doing that by hand is easy to miss mid-game or mid-call.
+Docking or soft-powering a Logitech Astro A50 X should pause what’s playing and resume when you come back. Doing that by hand is easy to miss mid-game or mid-call.
 
 This watcher listens to **HID events on the Logitech USB cradle** (`046d:0b0b`) and drives media apps that speak **MPRIS** (a standard Linux media-control interface) via `playerctl` — typically Spotify, and optionally other players.
 
@@ -14,7 +14,7 @@ This watcher listens to **HID events on the Logitech USB cradle** (`046d:0b0b`) 
 
 ## Who this is for
 
-- **In:** Astro A50 X / Logitech USB cradle `046d:0b0b` on a Linux desktop with **user systemd**.
+- **In:** Logitech Astro A50 X USB cradle `046d:0b0b` on a Linux desktop with **user systemd**.
 - **In:** PipeWire or PulseAudio (`pactl`), plus `playerctl`, `xxd`, and bash.
 - **Not for:** generic headsets, or apps that don’t speak MPRIS (many games).
 
@@ -88,7 +88,7 @@ See also [docs/PUBLISH.md](docs/PUBLISH.md).
 
 This can pause and resume media players. Hard stops and scope:
 
-- **Platform:** Astro A50X / Logitech USB `046d:0b0b` — not generic headsets.
+- **Platform:** Logitech Astro A50 X USB `046d:0b0b` — not generic headsets.
 - **Tradeoffs:** `PLAYER_MODE=all` may pause MPRIS players whose audio is not on the A50 if any stream is on A50 when HID fires.
 - **Limits:** non-MPRIS apps out of scope; soft-off hex may need per-firmware overrides.
 - **Kill-switch:** `systemctl --user stop a50x-spotify-pause.service`

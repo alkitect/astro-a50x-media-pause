@@ -1,4 +1,4 @@
-# ADR-003: A50X multi-MPRIS pause/resume control plane
+# ADR-003: A50 X multi-MPRIS pause/resume control plane
 
 ## Status
 
@@ -6,7 +6,7 @@ Accepted — 2026-08-14
 
 ## Context
 
-ADR-002 defines **HID triggers** (dock `dock_chg`, soft-off/on prefixes) for the Astro A50X watcher. The control plane paused a single MPRIS player (`PLAYER`, typically Spotify snap). Product need: on the same HID edges, pause/resume **all Playing MPRIS players** (browser video/music, VLC, etc.) without changing HID semantics or broadening the ambiguous PipeWire remove path.
+ADR-002 defines **HID triggers** (dock `dock_chg`, soft-off/on prefixes) for the Logitech Astro A50 X watcher. The control plane paused a single MPRIS player (`PLAYER`, typically Spotify snap). Product need: on the same HID edges, pause/resume **all Playing MPRIS players** (browser video/music, VLC, etc.) without changing HID semantics or broadening the ambiguous PipeWire remove path.
 
 ## Decision
 

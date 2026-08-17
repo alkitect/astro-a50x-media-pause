@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pause MPRIS media on confirmed A50X disable_intent (off-match after remove / HID).
+# Pause MPRIS media on confirmed A50 X disable_intent (off-match after remove / HID).
 # PLAYER_MODE=single (default): one PLAYER (typically Spotify).
 # PLAYER_MODE=all: all Playing players from playerctl -l.
 # Never re-pause after user Play. Resume only if this watcher paused it.
