@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install A50X Spotify pause/resume watcher.
+# Install Logitech Astro A50 X Spotify pause/resume watcher.
 # Usage: install-to-local.sh [--with-tools] [--enable-automation]
 set -euo pipefail
 

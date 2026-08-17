@@ -1,6 +1,6 @@
 # Acceptance matrix (template)
 
-Human checklist for Astro A50 X media pause. **Do not** commit host `/tmp` capture paths, usernames, or raw journal timestamps from a private machine.
+Human checklist for Logitech Astro A50 X media pause. **Do not** commit host `/tmp` capture paths, usernames, or raw journal timestamps from a private machine.
 
 Upstream host validated dock / soft-off / soft-on for `PLAYER_MODE=single` before the public extract. Re-run locally after install if you change firmware or distro.
 

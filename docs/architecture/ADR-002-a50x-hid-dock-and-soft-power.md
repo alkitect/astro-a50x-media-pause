@@ -1,4 +1,4 @@
-# ADR-002: A50X HID dock GET + passive soft power (pause triggers)
+# ADR-002: A50 X HID dock GET + passive soft power (pause triggers)
 
 ## Status
 
@@ -6,7 +6,7 @@ Accepted — 2026-08-14
 
 ## Context
 
-Soft-disable and dock on Astro A50X do **not** remove PipeWire A50 USB sinks. Media often stays `on_match=1`. Pausing on every `sink-input remove` false-positives on stream churn and is late (~12–19 s) for soft-disable. Product need: pause media within ≤2 s on dock and headset power-off; resume on undock and power-on when this watcher paused playback.
+Soft-disable and dock on Logitech Astro A50 X do **not** remove PipeWire A50 USB sinks. Media often stays `on_match=1`. Pausing on every `sink-input remove` false-positives on stream churn and is late (~12–19 s) for soft-disable. Product need: pause media within ≤2 s on dock and headset power-off; resume on undock and power-on when this watcher paused playback.
 
 *Which* MPRIS players are paused is [ADR-003](ADR-003-a50x-multi-mpris-control.md). This ADR covers **HID trigger semantics only**.
 

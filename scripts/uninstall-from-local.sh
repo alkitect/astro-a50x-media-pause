@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Disable and remove A50X Spotify pause/resume user unit, binaries, and HID udev rule.
+# Disable and remove Logitech Astro A50 X Spotify pause/resume user unit, binaries, and HID udev rule.
 set -euo pipefail
 
 BIN="${HOME}/.local/bin"

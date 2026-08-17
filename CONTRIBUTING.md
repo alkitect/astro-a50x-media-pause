@@ -65,4 +65,6 @@ find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
 
 ## Naming
 
-Repository: `astro-a50x-media-pause`. Installed binary / unit / XDG dir remain `a50x-spotify-pause` for compatibility.
+Headset (marketing): **Logitech Astro A50 X**. Short form in later mentions: **A50 X** (space before X). Do not write `Astro A50X`.
+
+Repository slug: `astro-a50x-media-pause`. Installed binary / unit / XDG dir remain `a50x-spotify-pause` for compatibility. Env `A50X_TOPIC_ROOT` is an identifier — do not rename.

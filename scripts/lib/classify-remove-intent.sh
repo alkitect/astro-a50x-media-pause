@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pure remove-intent classifier for A50X watcher (F0).
+# Pure remove-intent classifier for A50 X watcher (F0).
 # Usage: classify_remove_intent <was_on_match> <on_match> <pending_new> <status>
 # Prints: none|disable|churn|ambiguous_on_match
 # Exit 0 always when args valid; exit 2 on usage error.

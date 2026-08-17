@@ -1,4 +1,4 @@
-# Astro A50X media pause/resume — implementation notes
+# Logitech Astro A50 X media pause/resume — implementation notes
 
 Semantics for [a50x-spotify-pause.sh](../scripts/a50x-spotify-pause.sh) after **F4-multi** (`PLAYER_MODE`) on top of **F3c** HID soft-on.
 

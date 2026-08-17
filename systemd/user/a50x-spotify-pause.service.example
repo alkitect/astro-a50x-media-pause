@@ -1,5 +1,5 @@
 [Unit]
-Description=Pause/resume Spotify on Astro A50X off-match (or HID when enabled)
+Description=Pause/resume Spotify on Logitech Astro A50 X off-match (or HID when enabled)
 After=pipewire.service wireplumber.service pipewire-pulse.service default.target
 Wants=pipewire-pulse.service
 StartLimitIntervalSec=60
