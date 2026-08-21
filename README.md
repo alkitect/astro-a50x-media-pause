@@ -2,7 +2,7 @@
 
 Pause and resume desktop media when a **Logitech Astro A50 X** headset docks, undocks, or soft power-cycles — without hunting for the right player window.
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/alkitect)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/alkitect/?hidefeed=true&widget=true&embed=true)
 
 ## What this does
 
@@ -99,4 +99,4 @@ This can pause and resume media players. Hard stops and scope:
 
 MIT — see [LICENSE](LICENSE).
 
-Optional tip jar: [ko-fi.com/alkitect](https://ko-fi.com/alkitect)
+Optional tip jar: [ko-fi.com/alkitect](https://ko-fi.com/alkitect/?hidefeed=true&widget=true&embed=true)
