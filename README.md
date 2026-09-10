@@ -69,6 +69,13 @@ Maintainers: `find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n` �
 ./scripts/uninstall-from-local.sh
 ```
 
+Also remove the udev rule if you copied it:
+
+```bash
+sudo rm -f /etc/udev/rules.d/99-logitech-a50x-hid.rules
+sudo udevadm control --reload
+```
+
 ## Configure
 
 - `PLAYER_MODE=single` (default) vs `all` (pauses all Playing MPRIS players — browser, VLC, …).
@@ -81,8 +88,6 @@ Layout: product CLIs under `scripts/`; libs in `scripts/lib/`; fixtures in `scri
 Current watcher: `WATCHER_VERSION=f4-mpris-multi-1` · release tag **v0.6.1** (`PLAYER_MODE=all` experimental until v1.0).
 
 Architecture: [docs/architecture/](docs/architecture/) · [ADR-002](docs/architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](docs/architecture/ADR-003-a50x-multi-mpris-control.md).
-
-See also [docs/PUBLISH.md](docs/PUBLISH.md).
 
 ## Limits & safety
 
