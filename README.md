@@ -2,7 +2,6 @@
 
 Pause and resume desktop media when a **Logitech Astro A50 X** headset docks, undocks, or soft power-cycles — without hunting for the right player window.
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/alkitect/?hidefeed=true&widget=true&embed=true)
 
 ## What this does
 
@@ -62,6 +61,12 @@ journalctl --user -t a50x-spotify-pause -n 50
 - If the wrong app pauses: stay on `PLAYER_MODE=single` until you’re ready to try `all`.
 
 Maintainers: `find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n` · `./scripts/test/run-intent-fixtures.sh` · `./scripts/ci-check.sh`.
+
+## Support my work
+
+Tip jar for the next desktop fix. Or a coffee so the next script stays boring on purpose.
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/alkitect/?hidefeed=true&widget=true&embed=true)
 
 ## Uninstall
 
