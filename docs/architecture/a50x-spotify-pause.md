@@ -6,7 +6,7 @@ MPRIS control plane: [ADR-003](ADR-003-a50x-multi-mpris-control.md).
 Default-sink routing: [ADR-004](ADR-004-a50x-default-sink-routing.md).  
 Semantics: [IMPLEMENTATION.md](../IMPLEMENTATION.md).
 
-**Status:** Dock / soft-off / soft-on HID paths shipped; optional `ROUTE_ENABLE` default-sink routing (`WATCHER_VERSION=f5-route-1`). Default `PLAYER_MODE=single` (Spotify). Human **F4-multi** for `PLAYER_MODE=all` — see [acceptance-matrix](../acceptance-matrix.md). Unit/binary names keep `a50x-spotify-pause`.
+**Status:** Dock / soft-off / soft-on HID paths shipped; optional `ROUTE_ENABLE` / `ROUTE_SINK_MATCH` default-sink routing (`WATCHER_VERSION=f5-route-2`). Default `PLAYER_MODE=single` (Spotify). Human **F4-multi** for `PLAYER_MODE=all` — see [acceptance-matrix](../acceptance-matrix.md). Unit/binary names keep `a50x-spotify-pause`.
 
 ## Decisions map
 

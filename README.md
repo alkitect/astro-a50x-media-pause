@@ -88,14 +88,14 @@ sudo udevadm control --reload
 
 - `PLAYER_MODE=single` (default) vs `all` (pauses all Playing MPRIS players — browser, VLC, …).
 - Soft-off/on hex may need `HID_SOFT_*_PREFIX` override per firmware; browser soft-off needs `HID_ENABLE=1`.
-- **Seamless output:** `ROUTE_ENABLE=1` uses `SINK_MATCH` on undock / soft-on (needs `HID_ENABLE=1` for those edges). Startup skips if the default is already a Bluetooth A2DP sink.
+- **Seamless output:** `ROUTE_ENABLE=1` routes on undock / soft-on via `ROUTE_SINK_MATCH` (or `SINK_MATCH` if unset); needs `HID_ENABLE=1` for those edges. On dual A50 Pro sinks keep `SINK_MATCH` broad for pause and set `ROUTE_SINK_MATCH` to Pro 1. Startup skips if the default is already a Bluetooth A2DP sink.
 - **Rollback routing:** set `ROUTE_ENABLE=0` and restart — stops future claims; does **not** restore the prior sink. Restore manually: `pactl set-default-sink <name>`.
 
 ## How it works
 
 Layout: product CLIs under `scripts/`; libs in `scripts/lib/`; fixtures in `scripts/test/`; research probes/scorers in `scripts/tools/` (install with `--with-tools`).
 
-Current watcher: `WATCHER_VERSION=f5-route-1` · release tag **v0.7.0** (`PLAYER_MODE=all` experimental until v1.0).
+Current watcher: `WATCHER_VERSION=f5-route-2` · release tag **v0.7.1** (`PLAYER_MODE=all` experimental until v1.0).
 
 Architecture: [docs/architecture/](docs/architecture/) · [ADR-002](docs/architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](docs/architecture/ADR-003-a50x-multi-mpris-control.md) · [ADR-004](docs/architecture/ADR-004-a50x-default-sink-routing.md).
 

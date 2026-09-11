@@ -7,7 +7,7 @@
 # Usage: a50x-spotify-pause  (long-running; intended as user systemd service)
 set -euo pipefail
 
-WATCHER_VERSION=f5-route-1
+WATCHER_VERSION=f5-route-2
 
 CFG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/astro-a50x-spotify-pause"
 CFG_FILE="${CFG_DIR}/config"
@@ -76,6 +76,9 @@ HID_SOFT_OFF_PREFIX=""
 HID_SOFT_ON_PREFIX=""
 # Optional PipeWire default-sink routing on undock/soft-on (ADR-004). Independent of ENABLED.
 ROUTE_ENABLE=0
+# Optional route target regex (unique preferred sink). Empty → use SINK_MATCH.
+# Keep SINK_MATCH broad (both pro-output-0/1) for pause gates; set ROUTE_SINK_MATCH to Pro 1 / Game.
+ROUTE_SINK_MATCH=
 
 if [[ -f "${CFG_FILE}" ]]; then
   # shellcheck disable=SC1090
@@ -90,6 +93,11 @@ case "${PLAYER_MODE}" in
     PLAYER_MODE=single
     ;;
 esac
+
+# Effective route regex: prefer ROUTE_SINK_MATCH when set.
+if [[ -z "${ROUTE_SINK_MATCH}" || "${ROUTE_SINK_MATCH}" == "REPLACE_ME_FROM_DISCOVER" ]]; then
+  ROUTE_SINK_MATCH="${SINK_MATCH}"
+fi
 
 # F2e PASS (r3): first soft-disable / power-on interrupt prefixes (14 hex chars).
 HID_SOFT_OFF_PREFIX_DEFAULT=020c04000a0006
@@ -118,13 +126,13 @@ log_edge() {
 # ADR-004: optional default-sink routing (must be defined before sourcing hid.sh).
 route_a50x_if_enabled() {
   local reason="${1:-route}"
-  local bin rc=0
+  local bin rc=0 match="${ROUTE_SINK_MATCH}"
   [[ "${ROUTE_ENABLE}" == "1" ]] || return 0
-  if [[ -z "${SINK_MATCH}" || "${SINK_MATCH}" == "REPLACE_ME_FROM_DISCOVER" ]]; then
+  if [[ -z "${match}" || "${match}" == "REPLACE_ME_FROM_DISCOVER" ]]; then
     return 0
   fi
   if [[ "${DRY_RUN}" == "1" ]]; then
-    log "would-route reason=${reason} DRY_RUN=1"
+    log "would-route reason=${reason} match=${match} DRY_RUN=1"
     return 0
   fi
   bin="${A50X_SWITCH_BIN:-${HOME}/.local/bin/switch-to-a50x-sink}"
@@ -132,8 +140,8 @@ route_a50x_if_enabled() {
     log "route reason=${reason} rc=missing helper=${bin}"
     return 0
   fi
-  "${bin}" --match "${SINK_MATCH}" --quiet || rc=$?
-  log "route reason=${reason} rc=${rc}"
+  "${bin}" --match "${match}" --quiet || rc=$?
+  log "route reason=${reason} match=${match} rc=${rc}"
   return 0
 }
 
@@ -590,7 +598,7 @@ if [[ "${ROUTE_ENABLE}" == "1" ]]; then
   unset _def
 fi
 
-log "start on_match=${was_on_match} sinks=${was_sinks} ENABLED=${ENABLED} DRY_RUN=${DRY_RUN} ROUTE_ENABLE=${ROUTE_ENABLE} SINK_MATCH=${SINK_MATCH} PLAYER=${PLAYER} PLAYER_MODE=${PLAYER_MODE} POLL_SEC=${POLL_SEC} DISABLE_LATCH_SEC=${DISABLE_LATCH_SEC} HID_ENABLE=${HID_ENABLE} hid_mode=battery_get+soft_off_on soft_off_prefix=${HID_SOFT_OFF_PREFIX} soft_on_prefix=${HID_SOFT_ON_PREFIX} version=${WATCHER_VERSION}"
+log "start on_match=${was_on_match} sinks=${was_sinks} ENABLED=${ENABLED} DRY_RUN=${DRY_RUN} ROUTE_ENABLE=${ROUTE_ENABLE} SINK_MATCH=${SINK_MATCH} ROUTE_SINK_MATCH=${ROUTE_SINK_MATCH} PLAYER=${PLAYER} PLAYER_MODE=${PLAYER_MODE} POLL_SEC=${POLL_SEC} DISABLE_LATCH_SEC=${DISABLE_LATCH_SEC} HID_ENABLE=${HID_ENABLE} hid_mode=battery_get+soft_off_on soft_off_prefix=${HID_SOFT_OFF_PREFIX} soft_on_prefix=${HID_SOFT_ON_PREFIX} version=${WATCHER_VERSION}"
 
 trap 'hid_close_fd; exit 0' INT TERM
 

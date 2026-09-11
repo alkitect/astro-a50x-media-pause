@@ -54,7 +54,7 @@ migrate_config() {
   # Drop dead knobs only — do NOT auto-bump DISABLE_LATCH_SEC (H02).
   grep -vE '^[[:space:]]*(RESUME_SOFT_SEC|REASSERT_SEC)=' "${cfg}" >"${tmp}" || true
   mv "${tmp}" "${cfg}"
-  for key in HID_ENABLE HID_MATCH_HEX HID_DEVICE DISABLE_LATCH_SEC HID_SOFT_OFF_PREFIX HID_SOFT_ON_PREFIX PLAYER_MODE ROUTE_ENABLE; do
+  for key in HID_ENABLE HID_MATCH_HEX HID_DEVICE DISABLE_LATCH_SEC HID_SOFT_OFF_PREFIX HID_SOFT_ON_PREFIX PLAYER_MODE ROUTE_ENABLE ROUTE_SINK_MATCH; do
     if ! grep -qE "^[[:space:]]*${key}=" "${cfg}" 2>/dev/null; then
       if grep -qE "^${key}=" "${ROOT}/config/example.config" 2>/dev/null; then
         grep -E "^${key}=" "${ROOT}/config/example.config" >>"${cfg}" || true
@@ -104,14 +104,14 @@ echo "  ${CFG_DIR}/config"
 echo "  ${SYSTEMD_USER}/a50x-spotify-pause.service"
 echo ""
 echo "f5-route ladder (optional seamless output after discover):"
-echo "  1. discover-a50x-sink → set SINK_MATCH; set ROUTE_ENABLE=1 HID_ENABLE=1 DRY_RUN=0"
+echo "  1. discover-a50x-sink → set SINK_MATCH (broad) + optional ROUTE_SINK_MATCH; ROUTE_ENABLE=1 HID_ENABLE=1 DRY_RUN=0"
 echo "  2. install-to-local.sh; systemctl --user restart a50x-spotify-pause.service"
 echo "  3. verify-a50x-spotify-pause; undock/soft-on → pactl get-default-sink matches A50"
 echo "  4. DRY_RUN=1 soak logs would-route only (no sink moves)"
 echo ""
 echo "F4-multi ladder (multi-MPRIS after F4c):"
 echo "  1. install-to-local.sh; systemctl --user restart a50x-spotify-pause.service"
-echo "  2. Confirm journal version=f5-route-1 PLAYER_MODE=single (default)"
+echo "  2. Confirm journal version=f5-route-2 PLAYER_MODE=single (default)"
 echo "  3. Optional: PLAYER_MODE=all DRY_RUN=1 soak → DRY_RUN=0 → docs/acceptance-matrix.md F4-multi"
 echo "  4. STOP on first false pause/resume"
 echo "Expect: reason=hid-soft-off / hid-soft-on / hid-dock-chg-rise|fall; route reason=…; players=…"

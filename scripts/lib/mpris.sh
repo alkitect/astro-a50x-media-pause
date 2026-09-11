@@ -206,10 +206,16 @@ clear_we_paused() {
 # User pressed Play (or media resumed for user) — never fight them.
 user_play_override() {
   local why="${1:-user_play}"
+  local grace="${POST_PAUSE_OVERRIDE_GRACE_SEC:-3}"
   if [[ "${our_resume_in_progress}" == "1" ]]; then
     return 0
   fi
   if ! disable_latch_armed && [[ "${we_paused_it}" != "1" ]]; then
+    return 0
+  fi
+  # Spotify/PipeWire often flaps Playing for ~1–2s after our pause; do not clear episode yet.
+  if (( paused_at > 0 && SECONDS - paused_at < grace )); then
+    log_edge "override deferred (post-pause grace ${grace}s) why=${why}"
     return 0
   fi
   log "override=${why} clear latch+we_paused players=$(we_paused_csv)"

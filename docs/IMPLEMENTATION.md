@@ -23,14 +23,15 @@ Soft-disable/dock does **not** remove A50 USB sinks. `sink-input remove` also fi
 | HID soft-off | Prefix `HID_SOFT_OFF_PREFIX` (default `020c04000a0006`) → pause; sets `hid_soft_off_episode` if pause recorded |
 | HID soft-on | Prefix `HID_SOFT_ON_PREFIX` (default `020c0400130000`) → `try_resume hid-soft-on` only if episode set; **route** always on edge when `ROUTE_ENABLE=1` |
 | `ROUTE_ENABLE` | ADR-004: optional default-sink claim on undock / soft-on / guarded startup |
-| `route_a50x_if_enabled` | Watcher hook (before `hid.sh` source); `DRY_RUN=1` → `would-route` only |
+| `ROUTE_SINK_MATCH` | Optional unique route target; empty → `SINK_MATCH` (keep gate regex broader on dual Pro sinks) |
+| `route_a50x_if_enabled` | Watcher hook (before `hid.sh` source); uses `ROUTE_SINK_MATCH`; `DRY_RUN=1` → `would-route` only |
 | `A50X_SWITCH_BIN` | Env override for helper path (default `~/.local/bin/switch-to-a50x-sink`) |
 | `switch-to-a50x-sink` | Idempotent `pactl` set-default + move-by-index; multi-match WARN + first |
 | `disable_latch` | Bookkeeping TTL after real disable — does **not** re-pause Playing |
 | `override=user_play` | User Playing while we_paused/latch → clear latch + set |
 | Coalesce | Skip players already in `we_paused_players`; still pause newly Playing eligible |
 | Cork | `spotify_uncorked` only when `PLAYER_MODE=single` |
-| `WATCHER_VERSION` | `f5-route-1` |
+| `WATCHER_VERSION` | `f5-route-2` |
 | `HID_MATCH_HEX` | Deprecated — ignored |
 
 Layout: watcher entry [a50x-spotify-pause.sh](../scripts/a50x-spotify-pause.sh) sources [lib/mpris.sh](../scripts/lib/mpris.sh) (MPRIS + shared pause orchestration) and [lib/hid.sh](../scripts/lib/hid.sh) (ADR-002 triggers + route hooks). Classifier: [lib/classify-remove-intent.sh](../scripts/lib/classify-remove-intent.sh). Fixtures: [test/run-intent-fixtures.sh](../scripts/test/run-intent-fixtures.sh), [test/run-route-helper-fixtures.sh](../scripts/test/run-route-helper-fixtures.sh). Research tools: [scripts/tools/](../scripts/tools/) (`install-to-local.sh --with-tools`).

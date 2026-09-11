@@ -27,7 +27,7 @@ rm -rf "${BIN}/a50x-spotify-pause-lib"
 
 echo "Removed a50x-spotify-pause user unit and binaries."
 echo "Config kept at ${CFG_DIR}/config (delete manually if unwanted)."
-echo "Optional config keys to drop: HID_ENABLE HID_MATCH_HEX HID_DEVICE DISABLE_LATCH_SEC ROUTE_ENABLE"
+echo "Optional config keys to drop: HID_ENABLE HID_MATCH_HEX HID_DEVICE DISABLE_LATCH_SEC ROUTE_ENABLE ROUTE_SINK_MATCH"
 
 if [[ -f "${UDEV_RULE}" ]]; then
   if [[ "$(id -u)" -eq 0 ]]; then

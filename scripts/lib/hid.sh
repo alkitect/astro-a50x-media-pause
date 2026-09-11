@@ -109,11 +109,12 @@ hid_try_pause_soft_off() {
   last_intent=disable
   st="$(aggregate_player_status)"
   if ! on_match_gate; then
-    log_edge "HID soft-off skipped (not on A50 sink)"
+    # Always log — silent skip hid the dual-sink / Twins-steal regressions.
+    log "HID soft-off skipped (not on A50 sink) status=${st}"
     return 0
   fi
   if ! eligible_for_pause_gate; then
-    log_edge "HID soft-off skipped status=${st}"
+    log "HID soft-off skipped (not eligible) status=${st}"
     return 0
   fi
   if [[ -n "${we_paused_players}" ]] && ! any_playing; then

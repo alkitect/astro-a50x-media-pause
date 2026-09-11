@@ -19,13 +19,13 @@ journalctl --user -t a50x-spotify-pause --since "10 min ago" \
 
 ## F4-multi — multi-MPRIS (`PLAYER_MODE=all`) — human (release gate for v1.0)
 
-Watcher: `WATCHER_VERSION=f5-route-1`. Browser soft-off requires **`HID_ENABLE=1`**.
+Watcher: `WATCHER_VERSION=f5-route-2`. Browser soft-off requires **`HID_ENABLE=1`**.
 
 **Enable ladder:** working `single` → set `PLAYER_MODE=all` with `DRY_RUN=1` soak ≥5 min → `DRY_RUN=0` → matrix below.
 
 | Case | Expect | Result |
 |------|--------|--------|
-| Install shows `f5-route-1` + `PLAYER_MODE=` in start log | pending |
+| Install shows `f5-route-2` + `PLAYER_MODE=` in start log | pending |
 | Spotify Playing on A50 → dock | ≤2 s pause; undock resume | pending |
 | Browser HTML5 on A50, `HID_ENABLE=1` | soft-off pause; soft-on resume | pending |
 | Spotify + browser both Playing | both in `players=`; both resume only if watcher paused | pending |
@@ -41,7 +41,7 @@ journalctl --user -t a50x-spotify-pause --since "10 min ago" \
 
 ## F5 — seamless output (`ROUTE_ENABLE=1`) — human
 
-**Enable ladder:** `discover-a50x-sink` → unique `SINK_MATCH` → `ROUTE_ENABLE=1` `HID_ENABLE=1` `DRY_RUN=0` → verify PASS → matrix.
+**Enable ladder:** `discover-a50x-sink` → broad `SINK_MATCH` + unique `ROUTE_SINK_MATCH` (dual Pro) → `ROUTE_ENABLE=1` `HID_ENABLE=1` `DRY_RUN=0` → verify PASS → matrix.
 
 | Case | Expect | Result |
 |------|--------|--------|

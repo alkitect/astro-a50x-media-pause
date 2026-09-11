@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.7.1 — 2026-09-11
+
+- Fix dual A50 pro-audio sinks: keep `SINK_MATCH` broad for pause gates; add optional `ROUTE_SINK_MATCH` for preferred Game/Pro 1 routing (`WATCHER_VERSION=f5-route-2`).
+- Log HID soft-off skips when not on A50; defer `user_play_override` for a short post-pause grace (Spotify/PipeWire Playing flap).
+
 ## 0.7.0 — 2026-09-11
 
 - Optional PipeWire default-sink routing (`ROUTE_ENABLE`, `WATCHER_VERSION=f5-route-1`, ADR-004): undock / soft-on edges + guarded startup; `switch-to-a50x-sink` helper; `DRY_RUN` logs `would-route` only; route-helper fixtures + ci-check / verify ladder.

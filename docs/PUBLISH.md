@@ -6,16 +6,20 @@ README variant: A
 
 First public tag: v0.6.1
 
-Latest tag: **v0.7.0** (optional `ROUTE_ENABLE` default-sink routing / `f5-route-1`)
+Latest tag: **v0.7.1** (`f5-route-2` dual-sink pause gate + `ROUTE_SINK_MATCH` / post-pause override grace)
 
 Default first tag is 0.1.0. Never copy another alkitect repo’s tag. Use `RC-BEFORE-1.0` in this file only for an intentional 0.9.x RC.
 
 ```bash
 ./scripts/ci-check.sh
-git tag -a v0.7.0 -m "v0.7.0"
+git tag -a v0.7.1 -m "v0.7.1"
 git push origin main
-git push origin v0.7.0
-gh release create v0.7.0 --verify-tag --title "v0.7.0" --notes-file CHANGELOG.md
+git push origin v0.7.1
+gh release create v0.7.1 --title "v0.7.1" --notes-file - <<'EOF'
+## 0.7.1
+
+Dual A50 pro-audio sink fix: broad `SINK_MATCH` for pause gates; optional `ROUTE_SINK_MATCH` for Pro 1 / Game; always-log soft-off skips; post-pause override grace (`f5-route-2`).
+EOF
 ```
 
 Repo URL: `https://github.com/alkitect/astro-a50x-media-pause`

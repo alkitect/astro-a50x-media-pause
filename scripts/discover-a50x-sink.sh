@@ -20,14 +20,21 @@ else
   echo "${matches}"
   count="$(grep -c . <<<"${matches}" || true)"
   if [[ "${count}" -gt 1 ]]; then
-    echo "WARN: ${count} matches — narrow SINK_MATCH to avoid HDMI/BT false positives"
+    echo "WARN: ${count} matches — for pause gates prefer a card-wide regex; for ROUTE_ENABLE set ROUTE_SINK_MATCH to one sink"
   fi
-  # Suggest last path component-ish token from first match column 2
   first_name="$(awk '{print $2; exit}' <<<"${matches}")"
+  second_name="$(awk 'NR==2 {print $2; exit}' <<<"${matches}")"
   echo ""
-  echo "Suggested SINK_MATCH (edit if needed):"
-  echo "  SINK_MATCH=${first_name}"
-  echo "Or a short unique substring regex, e.g. SINK_MATCH=A50_X|Astro"
+  if [[ "${count}" -ge 2 ]] && grep -qiE 'pro-output-[01]' <<<"${matches}"; then
+    echo "Dual A50 pro-audio sinks (typically Chat=Pro/output-0, Game=Pro 1/output-1):"
+    echo "  SINK_MATCH=Logitech_A50_X-00.pro-output"
+    echo "  ROUTE_SINK_MATCH=${second_name:-${first_name}}"
+    echo "  # Prefer Pro 1 for music/Game unless you know you want Chat (output-0)."
+  else
+    echo "Suggested SINK_MATCH (edit if needed):"
+    echo "  SINK_MATCH=${first_name}"
+    echo "Or a short unique substring regex, e.g. SINK_MATCH=A50_X|Astro"
+  fi
 fi
 echo ""
 echo "=== playerctl -l ==="

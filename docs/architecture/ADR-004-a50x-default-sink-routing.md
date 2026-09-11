@@ -21,9 +21,9 @@ Operators want seamless output when putting the headset on, without a second hid
    - `DRY_RUN=1` → log `would-route` only; no helper/`pactl` exec (same soak discipline as pause).
    - Live moves require `DRY_RUN=0`.
 5. **Twins / other BT:** Last intentional event wins. No continuous prefer-A50 poll. Startup must not steal an active A2DP default.
-6. **Multi-match:** If `SINK_MATCH` hits more than one sink, pick first and WARN; operators narrow via `discover-a50x-sink`.
+6. **Multi-match / dual sinks:** Pause gates use `SINK_MATCH` (may match both A50 `pro-output-0` and `pro-output-1`). Routing uses `ROUTE_SINK_MATCH` when set, else `SINK_MATCH`. If the route regex still hits more than one sink, the helper picks first and WARNs — operators should set a unique `ROUTE_SINK_MATCH` (typically `pro-output-1` / “A50 X Pro 1” / Game).
 7. **Rollback:** `ROUTE_ENABLE=0` + restart stops future claims; does **not** restore the prior default. Operator restores with `pactl set-default-sink …`.
-8. **No shared lib** with private Twins Elite helpers (ponytail ceiling: duplicate small `pactl` switch scripts).
+8. **No shared lib** with private Twins Elite helpers (ponytail ceiling: duplicate small `pactl` switch scripts). Twins autoswitch must not poll-steal while an A50 sink is the session default (honor A50 soft-on last-event).
 
 ## Consequences
 
@@ -37,7 +37,7 @@ Operators want seamless output when putting the headset on, without a second hid
 ### Negative / tradeoffs
 
 - Rapid Twins↔A50 events may flap the default once (no shared debounce bus).
-- Multi-match WARN can pick the wrong sink if `SINK_MATCH` is too broad.
+- Multi-match WARN can pick the wrong sink if `ROUTE_SINK_MATCH` / `SINK_MATCH` is still too broad for routing.
 - Rollback is stop-claims only; restore is manual.
 
 ## Alternatives considered

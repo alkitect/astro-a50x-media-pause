@@ -288,10 +288,10 @@ if [[ -x "${BIN}" ]]; then
       done
       return 1
     }
-    if grep -q 'WATCHER_VERSION=f5-route-1' "${BIN}"; then
-      ok "WATCHER_VERSION=f5-route-1"
+    if grep -q 'WATCHER_VERSION=f5-route-2' "${BIN}"; then
+      ok "WATCHER_VERSION=f5-route-2"
     else
-      fail "installed binary missing WATCHER_VERSION=f5-route-1 (run install-to-local.sh)"
+      fail "installed binary missing WATCHER_VERSION=f5-route-2 (run install-to-local.sh)"
     fi
     if [[ -x "${SWITCH_BIN}" ]]; then
       if [[ -n "${TOPIC_ROOT:-}" && -f "${TOPIC_ROOT}/scripts/switch-to-a50x-sink.sh" ]]; then
