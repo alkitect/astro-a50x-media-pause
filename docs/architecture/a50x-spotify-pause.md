@@ -3,9 +3,10 @@
 Operational tree: this repository (`scripts/`, `config/`, `systemd/`, `udev/`).  
 HID triggers: [ADR-002](ADR-002-a50x-hid-dock-and-soft-power.md).  
 MPRIS control plane: [ADR-003](ADR-003-a50x-multi-mpris-control.md).  
+Default-sink routing: [ADR-004](ADR-004-a50x-default-sink-routing.md).  
 Semantics: [IMPLEMENTATION.md](../IMPLEMENTATION.md).
 
-**Status:** Dock / soft-off / soft-on HID paths shipped (`WATCHER_VERSION=f4-mpris-multi-1`). Default `PLAYER_MODE=single` (Spotify). Human **F4-multi** for `PLAYER_MODE=all` — see [acceptance-matrix](../acceptance-matrix.md). Unit/binary names keep `a50x-spotify-pause`.
+**Status:** Dock / soft-off / soft-on HID paths shipped; optional `ROUTE_ENABLE` default-sink routing (`WATCHER_VERSION=f5-route-1`). Default `PLAYER_MODE=single` (Spotify). Human **F4-multi** for `PLAYER_MODE=all` — see [acceptance-matrix](../acceptance-matrix.md). Unit/binary names keep `a50x-spotify-pause`.
 
 ## Decisions map
 
@@ -13,6 +14,7 @@ Semantics: [IMPLEMENTATION.md](../IMPLEMENTATION.md).
 |---------|------|
 | Dock `dock_chg`, soft-off/on prefixes, GET `06` never soft-on, episode latch | ADR-002 |
 | `PLAYER_MODE`, `we_paused_players`, A50 gate matrix, non-MPRIS limits | ADR-003 |
+| `ROUTE_ENABLE`, undock/soft-on route, DRY_RUN would-route, Twins last-event | ADR-004 |
 | Deploy paths, SLOs, kill-switch | This C1–C3 + root README |
 ## C1 — System context
 
@@ -20,13 +22,18 @@ Semantics: [IMPLEMENTATION.md](../IMPLEMENTATION.md).
 flowchart LR
   user[User]
   watcher["A50 X media pause"]
+  route[switch_to_a50x_sink]
   mpris[MPRIS_players]
   pw[PipeWire_Pulse]
   cradle["A50 X USB cradle hidraw"]
+  twins[Twins_Elite_autoswitch]
   user -->|dock_undock_power| cradle
   user -->|listen| mpris
   watcher -->|playerctl_pause_play_N| mpris
   watcher -->|pactl_subscribe_list| pw
+  watcher -->|"ROUTE_ENABLE"| route
+  route -->|set_default_move| pw
+  twins -->|on_BT_A2DP| pw
   mpris -->|audio| pw
   pw -->|USB_audio| cradle
   watcher -->|HID_GET_and_drain| cradle
@@ -35,9 +42,11 @@ flowchart LR
 | Actor / system | Role |
 |----------------|------|
 | User | Docks/undocks headset; soft-disables (power); plays media |
-| A50 X media pause | User systemd watcher — pause/resume MPRIS on confirmed disable/enable (`PLAYER_MODE=single\|all`) |
+| A50 X media pause | User systemd watcher — pause/resume MPRIS on confirmed disable/enable (`PLAYER_MODE=single\|all`); optional route on undock/soft-on |
+| switch-to-a50x-sink | Idempotent `pactl` default + move-inputs helper (`ROUTE_ENABLE`) |
 | MPRIS players | Session bus players via `playerctl` (Spotify default; browsers/VLC when `all`) |
 | PipeWire | Sinks / sink-inputs; off-match is secondary / late for soft-disable |
+| Twins Elite autoswitch | Private host helper — last intentional event may steal default from A50 |
 | A50 X cradle hidraw | Logitech `046d:0b0b` — battery GET + passive interrupts |
 
 ## C2 — Containers (deployables)
@@ -66,9 +75,10 @@ flowchart TB
 | Container | Path / unit |
 |-----------|-------------|
 | Watcher binary | `~/.local/bin/a50x-spotify-pause` ← topic scripts |
+| Route helper | `~/.local/bin/switch-to-a50x-sink` |
 | Watcher libs | `~/.local/bin/a50x-spotify-pause-lib/` (`hid.sh`, `mpris.sh`, classifier) |
 | User unit | `~/.config/systemd/user/a50x-spotify-pause.service` |
-| Config | `~/.config/astro-a50x-spotify-pause/config` (`PLAYER_MODE`, `PLAYER`, `SINK_MATCH`, …) |
+| Config | `~/.config/astro-a50x-spotify-pause/config` (`PLAYER_MODE`, `PLAYER`, `SINK_MATCH`, `ROUTE_ENABLE`, …) |
 | Udev | `/etc/udev/rules.d/99-logitech-a50x-hid.rules` |
 
 **Structure note (no new ADR):** Variant A file split only — ADR-002 / ADR-003 semantics unchanged.
@@ -101,9 +111,9 @@ flowchart TD
 | Signal | Prefix / edge | Action | Gate |
 |--------|---------------|--------|------|
 | Soft-off | `020c04000a0006` | `do_pause hid-soft-off` | `on_match_gate` + Playing eligible (`single`: cork OK); sets `hid_soft_off_episode` |
-| Soft-on | `020c0400130000` | `try_resume hid-soft-on` | Episode + `we_paused_players` + `AUTO_RESUME` |
+| Soft-on | `020c0400130000` | `route_a50x_if_enabled` then `try_resume hid-soft-on` | Route: `ROUTE_ENABLE`; resume: episode + `we_paused_players` + `AUTO_RESUME` |
 | Dock | `dock_chg` 0→1 (GET byte8) | `do_pause hid-dock-chg-rise` | Same play/sink gates |
-| Undock | `dock_chg` 1→0 | `try_resume hid-dock-chg-fall` | `we_paused_players` |
+| Undock | `dock_chg` 1→0 | `route_a50x_if_enabled` then `try_resume hid-dock-chg-fall` | Route: `ROUTE_ENABLE`; resume: `we_paused_players` |
 | Heartbeat | `cmd=05` | Ignore | — |
 | Battery GET reply | `cmd=06` | Dock byte only — **never** soft-on | — |
 
@@ -114,8 +124,9 @@ flowchart TD
 
 | Script module | Role |
 |---------------|------|
-| `scripts/a50x-spotify-pause.sh` | Entry: config, PW subscribe/latch, sources libs |
-| `scripts/lib/hid.sh` | ADR-002 triggers: battery GET `dock_chg`, soft-off/on |
+| `scripts/a50x-spotify-pause.sh` | Entry: config, `route_a50x_if_enabled`, PW subscribe/latch, sources libs |
+| `scripts/switch-to-a50x-sink.sh` | ADR-004: idempotent default sink + move-inputs |
+| `scripts/lib/hid.sh` | ADR-002 triggers + route hooks on undock/soft-on |
 | `scripts/lib/mpris.sh` | ADR-003 control + shared pause orchestration (Variant A peel; not a pure plane) |
 | `scripts/lib/classify-remove-intent.sh` | Pure F0 remove-intent classifier |
 | `scripts/tools/*` | Closed research ladder; install with `--with-tools` only |
@@ -135,5 +146,6 @@ flowchart TD
 
 ```bash
 systemctl --user stop a50x-spotify-pause.service
-# or HID_ENABLE=0 / ENABLED=0 / PLAYER_MODE=single in config
+# or HID_ENABLE=0 / ENABLED=0 / ROUTE_ENABLE=0 / PLAYER_MODE=single in config
+# ROUTE_ENABLE=0 does not restore prior default — use: pactl set-default-sink <name>
 ```

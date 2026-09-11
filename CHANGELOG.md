@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.0 — 2026-09-11
+
+- Optional PipeWire default-sink routing (`ROUTE_ENABLE`, `WATCHER_VERSION=f5-route-1`, ADR-004): undock / soft-on edges + guarded startup; `switch-to-a50x-sink` helper; `DRY_RUN` logs `would-route` only; route-helper fixtures + ci-check / verify ladder.
+
 ## 0.6.1 — 2026-08-15
 - CI: isolate `XDG_CONFIG_HOME` / `XDG_STATE_HOME` under temp `HOME` in `ci-check.sh` (same Actions pitfall as graceful-shutdown); bump `actions/checkout` to v5.
 

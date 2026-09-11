@@ -21,23 +21,29 @@ Soft-disable/dock does **not** remove A50 USB sinks. `sink-input remove` also fi
 | HID `dock_chg` rise | Battery GET byte8 0→1 → pause (`reason=hid-dock-chg-rise`) |
 | HID `dock_chg` fall | 1→0 → resume if `we_paused_players` (`reason=hid-dock-chg-fall`) |
 | HID soft-off | Prefix `HID_SOFT_OFF_PREFIX` (default `020c04000a0006`) → pause; sets `hid_soft_off_episode` if pause recorded |
-| HID soft-on | Prefix `HID_SOFT_ON_PREFIX` (default `020c0400130000`) → `try_resume hid-soft-on` only if episode set |
+| HID soft-on | Prefix `HID_SOFT_ON_PREFIX` (default `020c0400130000`) → `try_resume hid-soft-on` only if episode set; **route** always on edge when `ROUTE_ENABLE=1` |
+| `ROUTE_ENABLE` | ADR-004: optional default-sink claim on undock / soft-on / guarded startup |
+| `route_a50x_if_enabled` | Watcher hook (before `hid.sh` source); `DRY_RUN=1` → `would-route` only |
+| `A50X_SWITCH_BIN` | Env override for helper path (default `~/.local/bin/switch-to-a50x-sink`) |
+| `switch-to-a50x-sink` | Idempotent `pactl` set-default + move-by-index; multi-match WARN + first |
 | `disable_latch` | Bookkeeping TTL after real disable — does **not** re-pause Playing |
 | `override=user_play` | User Playing while we_paused/latch → clear latch + set |
 | Coalesce | Skip players already in `we_paused_players`; still pause newly Playing eligible |
 | Cork | `spotify_uncorked` only when `PLAYER_MODE=single` |
-| `WATCHER_VERSION` | `f4-mpris-multi-1` |
+| `WATCHER_VERSION` | `f5-route-1` |
 | `HID_MATCH_HEX` | Deprecated — ignored |
 
-Layout: watcher entry [a50x-spotify-pause.sh](../scripts/a50x-spotify-pause.sh) sources [lib/mpris.sh](../scripts/lib/mpris.sh) (MPRIS + shared pause orchestration) and [lib/hid.sh](../scripts/lib/hid.sh) (ADR-002 triggers). Classifier: [lib/classify-remove-intent.sh](../scripts/lib/classify-remove-intent.sh). Fixtures: [test/run-intent-fixtures.sh](../scripts/test/run-intent-fixtures.sh). Research tools: [scripts/tools/](../scripts/tools/) (`install-to-local.sh --with-tools`). Structure-only split — no new ADR.
+Layout: watcher entry [a50x-spotify-pause.sh](../scripts/a50x-spotify-pause.sh) sources [lib/mpris.sh](../scripts/lib/mpris.sh) (MPRIS + shared pause orchestration) and [lib/hid.sh](../scripts/lib/hid.sh) (ADR-002 triggers + route hooks). Classifier: [lib/classify-remove-intent.sh](../scripts/lib/classify-remove-intent.sh). Fixtures: [test/run-intent-fixtures.sh](../scripts/test/run-intent-fixtures.sh), [test/run-route-helper-fixtures.sh](../scripts/test/run-route-helper-fixtures.sh). Research tools: [scripts/tools/](../scripts/tools/) (`install-to-local.sh --with-tools`).
 
-Architecture: [a50x-spotify-pause.md](architecture/a50x-spotify-pause.md) · [ADR-002](architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](architecture/ADR-003-a50x-multi-mpris-control.md).
+Architecture: [a50x-spotify-pause.md](architecture/a50x-spotify-pause.md) · [ADR-002](architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](architecture/ADR-003-a50x-multi-mpris-control.md) · [ADR-004](architecture/ADR-004-a50x-default-sink-routing.md).
 
 ## Journal
 
 ```
 paused … players=spotify,firefox.instance… reason=hid-soft-off signal=hid action=paused
 resumed … players=spotify,firefox.instance… reason=hid-soft-on
+route reason=dock_chg_fall rc=0
+would-route reason=hid-soft-on DRY_RUN=1
 ```
 
 ## Latency
@@ -48,6 +54,7 @@ resumed … players=spotify,firefox.instance… reason=hid-soft-on
 | HID soft-off (F3b) | Pause ≤~1–2 s; **F4b PASS** |
 | HID soft-on (F3c) | Resume ≤~1–2 s after power-on; **F4c PASS** 2026-08-14 |
 | Multi-MPRIS (`PLAYER_MODE=all`) | Same HID SLO; human **F4-multi** |
+| Route undock/soft-on (`ROUTE_ENABLE`) | Default sink claim ≤~2 s; human matrix pending |
 
 ## Kill-switch
 

@@ -146,6 +146,10 @@ hid_handle_passive_edges() {
     hid_try_pause_soft_off
   fi
   if [[ "${HID_SOFT_ON_SEEN}" == "1" ]]; then
+    # ADR-004: route on soft-on edge outside episode gate; resume stays episode-gated.
+    if declare -F route_a50x_if_enabled >/dev/null 2>&1; then
+      route_a50x_if_enabled "hid-soft-on"
+    fi
     hid_try_resume_soft_on
   fi
 }
@@ -187,7 +191,10 @@ hid_battery_get_dock_chg() {
 
 maybe_hid_poll() {
   [[ "${HID_ENABLE}" == "1" ]] || return 0
-  [[ "${ENABLED}" == "1" ]] || return 0
+  # ADR-004: poll for routing even when pause ENABLED=0.
+  if [[ "${ENABLED}" != "1" && "${ROUTE_ENABLE}" != "1" ]]; then
+    return 0
+  fi
   if ! command -v xxd >/dev/null 2>&1; then
     if [[ "${hid_warned_xxd}" != "1" ]]; then
       log "HID_ENABLE=1 but xxd missing; skipping HID"
@@ -257,6 +264,9 @@ maybe_hid_poll() {
   if [[ "${hid_dock_chg}" == "1" && "${dock_chg}" == "0" ]]; then
     hid_dock_chg=0
     log "HID dock_chg_fall device=${hid_open_dev:-unknown}"
+    if declare -F route_a50x_if_enabled >/dev/null 2>&1; then
+      route_a50x_if_enabled "dock_chg_fall"
+    fi
     try_resume "hid-dock-chg-fall"
     return 0
   fi

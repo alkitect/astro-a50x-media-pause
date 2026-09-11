@@ -19,13 +19,13 @@ journalctl --user -t a50x-spotify-pause --since "10 min ago" \
 
 ## F4-multi — multi-MPRIS (`PLAYER_MODE=all`) — human (release gate for v1.0)
 
-Watcher: `WATCHER_VERSION=f4-mpris-multi-1`. Browser soft-off requires **`HID_ENABLE=1`**.
+Watcher: `WATCHER_VERSION=f5-route-1`. Browser soft-off requires **`HID_ENABLE=1`**.
 
 **Enable ladder:** working `single` → set `PLAYER_MODE=all` with `DRY_RUN=1` soak ≥5 min → `DRY_RUN=0` → matrix below.
 
 | Case | Expect | Result |
 |------|--------|--------|
-| Install shows `f4-mpris-multi-1` + `PLAYER_MODE=` in start log | pending |
+| Install shows `f5-route-1` + `PLAYER_MODE=` in start log | pending |
 | Spotify Playing on A50 → dock | ≤2 s pause; undock resume | pending |
 | Browser HTML5 on A50, `HID_ENABLE=1` | soft-off pause; soft-on resume | pending |
 | Spotify + browser both Playing | both in `players=`; both resume only if watcher paused | pending |
@@ -36,7 +36,21 @@ Watcher: `WATCHER_VERSION=f4-mpris-multi-1`. Browser soft-off requires **`HID_EN
 
 ```bash
 journalctl --user -t a50x-spotify-pause --since "10 min ago" \
-  | grep -E 'action=paused|resumed|players=|PLAYER_MODE=|version=f4-mpris-multi'
+  | grep -E 'action=paused|resumed|players=|PLAYER_MODE=|version=f5-route|route reason='
 ```
+
+## F5 — seamless output (`ROUTE_ENABLE=1`) — human
+
+**Enable ladder:** `discover-a50x-sink` → unique `SINK_MATCH` → `ROUTE_ENABLE=1` `HID_ENABLE=1` `DRY_RUN=0` → verify PASS → matrix.
+
+| Case | Expect | Result |
+|------|--------|--------|
+| Undock or soft-on with default on speakers/HDMI | ≤2 s `pactl get-default-sink` matches A50; journal `route reason=… rc=0` | pending |
+| `ENABLED=0` route-only undock | still routes | pending |
+| `DRY_RUN=1` soak | `would-route` only; default unchanged | pending |
+| Twins Elite A2DP connect then A50 undock | Twins claims; A50 reclaim on undock | pending |
+| Restart watcher while Twins is default | startup does **not** steal | pending |
+| `ROUTE_ENABLE=0` + restart | no further claims; manual `pactl set-default-sink` restore | pending |
+| Pause SLO regression with HID | ≤2 s pause/resume | pending |
 
 **v1.0.0** requires this section’s F4-multi rows marked PASS in **this** public file (release SSOT).

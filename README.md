@@ -9,7 +9,9 @@ Docking or soft-powering a Logitech Astro A50 X should pause what’s playing an
 
 This watcher listens to **HID events on the Logitech USB cradle** (`046d:0b0b`) and drives media apps that speak **MPRIS** (a standard Linux media-control interface) via `playerctl` — typically Spotify, and optionally other players.
 
-**Safe by default:** the watcher stays **off** and **dry-run** (`ENABLED=0`, `DRY_RUN=1`, `HID_ENABLE=0`) until you opt in. Install, wire udev, and verify before real pause/play.
+Optional **seamless output:** with `ROUTE_ENABLE=1`, undock / soft-on (and a guarded startup) set the PipeWire default sink to your A50 match and move active streams — so audio works right away without opening Sound Settings.
+
+**Safe by default:** the watcher stays **off** and **dry-run** (`ENABLED=0`, `DRY_RUN=1`, `HID_ENABLE=0`, `ROUTE_ENABLE=0`) until you opt in. Install, wire udev, and verify before real pause/play or live routing.
 
 ## Who this is for
 
@@ -34,9 +36,10 @@ sudo udevadm trigger -c add -s hidraw
 **Stay safe before enabling:**
 
 1. Set `SINK_MATCH` (and `PLAYER` if `PLAYER_MODE=single`).
-2. Keep `ENABLED=0` `DRY_RUN=1` `HID_ENABLE=0` until ready; then `ENABLED=1` `HID_ENABLE=1` with `DRY_RUN=1` for a journal-only soak.
-3. Set `DRY_RUN=0` when you want real pause/play.
-4. Optional: `PLAYER_MODE=all` after another dry-run soak — see [docs/acceptance-matrix.md](docs/acceptance-matrix.md). Defaults stay `PLAYER_MODE=single` (one `PLAYER`, typically Spotify).
+2. Keep `ENABLED=0` `DRY_RUN=1` `HID_ENABLE=0` `ROUTE_ENABLE=0` until ready; then `ENABLED=1` `HID_ENABLE=1` with `DRY_RUN=1` for a journal-only soak.
+3. Set `DRY_RUN=0` when you want real pause/play (and live routing if enabled).
+4. Optional seamless output: `ROUTE_ENABLE=1` `HID_ENABLE=1` `DRY_RUN=0` after discover. `DRY_RUN=1` only logs `would-route` — it is **not** a sink-move soak.
+5. Optional: `PLAYER_MODE=all` after another dry-run soak — see [docs/acceptance-matrix.md](docs/acceptance-matrix.md). Defaults stay `PLAYER_MODE=single` (one `PLAYER`, typically Spotify).
 
 Then restart and watch:
 
@@ -60,7 +63,7 @@ journalctl --user -t a50x-spotify-pause -n 50
 - If HID never fires: confirm udev rules are installed and `discover-a50x-sink.sh` / USB ID look right.
 - If the wrong app pauses: stay on `PLAYER_MODE=single` until you’re ready to try `all`.
 
-Maintainers: `find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n` · `./scripts/test/run-intent-fixtures.sh` · `./scripts/ci-check.sh`.
+Maintainers: `find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n` · `./scripts/test/run-intent-fixtures.sh` · `./scripts/test/run-route-helper-fixtures.sh` · `./scripts/ci-check.sh`.
 
 ## Support my work
 
@@ -85,24 +88,26 @@ sudo udevadm control --reload
 
 - `PLAYER_MODE=single` (default) vs `all` (pauses all Playing MPRIS players — browser, VLC, …).
 - Soft-off/on hex may need `HID_SOFT_*_PREFIX` override per firmware; browser soft-off needs `HID_ENABLE=1`.
+- **Seamless output:** `ROUTE_ENABLE=1` uses `SINK_MATCH` on undock / soft-on (needs `HID_ENABLE=1` for those edges). Startup skips if the default is already a Bluetooth A2DP sink.
+- **Rollback routing:** set `ROUTE_ENABLE=0` and restart — stops future claims; does **not** restore the prior sink. Restore manually: `pactl set-default-sink <name>`.
 
 ## How it works
 
 Layout: product CLIs under `scripts/`; libs in `scripts/lib/`; fixtures in `scripts/test/`; research probes/scorers in `scripts/tools/` (install with `--with-tools`).
 
-Current watcher: `WATCHER_VERSION=f4-mpris-multi-1` · release tag **v0.6.1** (`PLAYER_MODE=all` experimental until v1.0).
+Current watcher: `WATCHER_VERSION=f5-route-1` · release tag **v0.7.0** (`PLAYER_MODE=all` experimental until v1.0).
 
-Architecture: [docs/architecture/](docs/architecture/) · [ADR-002](docs/architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](docs/architecture/ADR-003-a50x-multi-mpris-control.md).
+Architecture: [docs/architecture/](docs/architecture/) · [ADR-002](docs/architecture/ADR-002-a50x-hid-dock-and-soft-power.md) · [ADR-003](docs/architecture/ADR-003-a50x-multi-mpris-control.md) · [ADR-004](docs/architecture/ADR-004-a50x-default-sink-routing.md).
 
 ## Limits & safety
 
-This can pause and resume media players. Hard stops and scope:
+This can pause and resume media players, and optionally change the default audio sink. Hard stops and scope:
 
 - **Platform:** Logitech Astro A50 X USB `046d:0b0b` — not generic headsets.
 - **Tradeoffs:** `PLAYER_MODE=all` may pause MPRIS players whose audio is not on the A50 if any stream is on A50 when HID fires.
-- **Limits:** non-MPRIS apps out of scope; soft-off hex may need per-firmware overrides.
+- **Limits:** non-MPRIS apps out of scope; soft-off hex may need per-firmware overrides; `ROUTE_ENABLE=0` does not restore the previous default sink.
 - **Kill-switch:** `systemctl --user stop a50x-spotify-pause.service`
-- **Defaults:** `ENABLED=0`, `DRY_RUN=1`, `HID_ENABLE=0` until you opt in. `PLAYER_MODE=all` remains experimental until v1.0.
+- **Defaults:** `ENABLED=0`, `DRY_RUN=1`, `HID_ENABLE=0`, `ROUTE_ENABLE=0` until you opt in. `PLAYER_MODE=all` remains experimental until v1.0.
 - This GitHub repo is the **release source** for tagged releases and public docs — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License

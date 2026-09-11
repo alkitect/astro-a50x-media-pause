@@ -51,5 +51,6 @@ Probes showed:
 
 - [a50x-spotify-pause.md](a50x-spotify-pause.md) (C1–C3)
 - [ADR-003](ADR-003-a50x-multi-mpris-control.md) (multi-MPRIS control plane; HID unchanged)
+- [ADR-004](ADR-004-a50x-default-sink-routing.md) (optional default-sink routing; HID poll also serves `ROUTE_ENABLE`)
 - [README.md](../../README.md)
 - [IMPLEMENTATION.md](../IMPLEMENTATION.md)

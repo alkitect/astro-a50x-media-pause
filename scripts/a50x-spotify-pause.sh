@@ -7,7 +7,7 @@
 # Usage: a50x-spotify-pause  (long-running; intended as user systemd service)
 set -euo pipefail
 
-WATCHER_VERSION=f4-mpris-multi-1
+WATCHER_VERSION=f5-route-1
 
 CFG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/astro-a50x-spotify-pause"
 CFG_FILE="${CFG_DIR}/config"
@@ -74,6 +74,8 @@ HID_DEVICE=""
 # Empty = use F2e PASS defaults below (after config source).
 HID_SOFT_OFF_PREFIX=""
 HID_SOFT_ON_PREFIX=""
+# Optional PipeWire default-sink routing on undock/soft-on (ADR-004). Independent of ENABLED.
+ROUTE_ENABLE=0
 
 if [[ -f "${CFG_FILE}" ]]; then
   # shellcheck disable=SC1090
@@ -113,10 +115,36 @@ log_edge() {
   fi
 }
 
+# ADR-004: optional default-sink routing (must be defined before sourcing hid.sh).
+route_a50x_if_enabled() {
+  local reason="${1:-route}"
+  local bin rc=0
+  [[ "${ROUTE_ENABLE}" == "1" ]] || return 0
+  if [[ -z "${SINK_MATCH}" || "${SINK_MATCH}" == "REPLACE_ME_FROM_DISCOVER" ]]; then
+    return 0
+  fi
+  if [[ "${DRY_RUN}" == "1" ]]; then
+    log "would-route reason=${reason} DRY_RUN=1"
+    return 0
+  fi
+  bin="${A50X_SWITCH_BIN:-${HOME}/.local/bin/switch-to-a50x-sink}"
+  if [[ ! -x "${bin}" ]]; then
+    log "route reason=${reason} rc=missing helper=${bin}"
+    return 0
+  fi
+  "${bin}" --match "${SINK_MATCH}" --quiet || rc=$?
+  log "route reason=${reason} rc=${rc}"
+  return 0
+}
+
 require_cmds() {
   local missing=0
   command -v pactl >/dev/null 2>&1 || { log "missing pactl"; missing=1; }
-  command -v playerctl >/dev/null 2>&1 || { log "missing playerctl (apt install playerctl)"; missing=1; }
+  if [[ "${ENABLED}" == "1" ]] || [[ "${ROUTE_ENABLE}" != "1" ]]; then
+    command -v playerctl >/dev/null 2>&1 || { log "missing playerctl (apt install playerctl)"; missing=1; }
+  elif ! command -v playerctl >/dev/null 2>&1; then
+    log "WARN: playerctl missing (route-only mode; pause paths unavailable)"
+  fi
   return "${missing}"
 }
 
@@ -525,9 +553,11 @@ if [[ "${SINK_MATCH}" == "REPLACE_ME_FROM_DISCOVER" || -z "${SINK_MATCH}" ]]; th
   exit 1
 fi
 if [[ "${PLAYER_MODE}" == "single" ]]; then
-  if [[ "${PLAYER}" == "REPLACE_ME_FROM_DISCOVER" || -z "${PLAYER}" ]]; then
-    log "PLAYER not configured; run discover-a50x-sink.sh / playerctl -l"
-    exit 1
+  if [[ "${ENABLED}" == "1" || "${ROUTE_ENABLE}" != "1" ]]; then
+    if [[ "${PLAYER}" == "REPLACE_ME_FROM_DISCOVER" || -z "${PLAYER}" ]]; then
+      log "PLAYER not configured; run discover-a50x-sink.sh / playerctl -l"
+      exit 1
+    fi
   fi
 fi
 
@@ -549,7 +579,18 @@ fi
 last_poll_at="${SECONDS}"
 note_playing_activity
 
-log "start on_match=${was_on_match} sinks=${was_sinks} ENABLED=${ENABLED} DRY_RUN=${DRY_RUN} SINK_MATCH=${SINK_MATCH} PLAYER=${PLAYER} PLAYER_MODE=${PLAYER_MODE} POLL_SEC=${POLL_SEC} DISABLE_LATCH_SEC=${DISABLE_LATCH_SEC} HID_ENABLE=${HID_ENABLE} hid_mode=battery_get+soft_off_on soft_off_prefix=${HID_SOFT_OFF_PREFIX} soft_on_prefix=${HID_SOFT_ON_PREFIX} version=${WATCHER_VERSION}"
+# ADR-004: startup route unless Twins/other A2DP already holds default.
+if [[ "${ROUTE_ENABLE}" == "1" ]]; then
+  _def="$(pactl get-default-sink 2>/dev/null || true)"
+  if [[ "${_def}" =~ bluez_output\..*a2dp ]]; then
+    log "startup route skipped (default already A2DP: ${_def})"
+  else
+    route_a50x_if_enabled "startup"
+  fi
+  unset _def
+fi
+
+log "start on_match=${was_on_match} sinks=${was_sinks} ENABLED=${ENABLED} DRY_RUN=${DRY_RUN} ROUTE_ENABLE=${ROUTE_ENABLE} SINK_MATCH=${SINK_MATCH} PLAYER=${PLAYER} PLAYER_MODE=${PLAYER_MODE} POLL_SEC=${POLL_SEC} DISABLE_LATCH_SEC=${DISABLE_LATCH_SEC} HID_ENABLE=${HID_ENABLE} hid_mode=battery_get+soft_off_on soft_off_prefix=${HID_SOFT_OFF_PREFIX} soft_on_prefix=${HID_SOFT_ON_PREFIX} version=${WATCHER_VERSION}"
 
 trap 'hid_close_fd; exit 0' INT TERM
 

@@ -15,6 +15,7 @@ fi
 rm -f "${SYSTEMD_USER}/a50x-spotify-pause.service"
 rm -f "${SYSTEMD_USER}/default.target.wants/a50x-spotify-pause.service"
 rm -f "${BIN}/a50x-spotify-pause"
+rm -f "${BIN}/switch-to-a50x-sink"
 rm -f "${BIN}/discover-a50x-sink"
 rm -f "${BIN}/verify-a50x-spotify-pause"
 rm -f "${BIN}/a50x-hid-probe"
@@ -26,7 +27,7 @@ rm -rf "${BIN}/a50x-spotify-pause-lib"
 
 echo "Removed a50x-spotify-pause user unit and binaries."
 echo "Config kept at ${CFG_DIR}/config (delete manually if unwanted)."
-echo "Optional config keys to drop: HID_ENABLE HID_MATCH_HEX HID_DEVICE DISABLE_LATCH_SEC"
+echo "Optional config keys to drop: HID_ENABLE HID_MATCH_HEX HID_DEVICE DISABLE_LATCH_SEC ROUTE_ENABLE"
 
 if [[ -f "${UDEV_RULE}" ]]; then
   if [[ "$(id -u)" -eq 0 ]]; then

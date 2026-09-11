@@ -57,13 +57,15 @@ if grep -qF "${_p1}${_p2}" scripts/verify-a50x-spotify-pause.sh; then
   exit 1
 fi
 
-grep -q 'WATCHER_VERSION=f4-mpris-multi-1' scripts/a50x-spotify-pause.sh
+grep -q 'WATCHER_VERSION=f5-route-1' scripts/a50x-spotify-pause.sh
 grep -qE '^ENABLED=0' config/example.config
 grep -qE '^DRY_RUN=1' config/example.config
 grep -qE '^PLAYER_MODE=single' config/example.config
+grep -qE '^ROUTE_ENABLE=0' config/example.config
 
 find scripts -type f -name '*.sh' -print0 | xargs -0 -r bash -n
 ./scripts/test/run-intent-fixtures.sh
+./scripts/test/run-route-helper-fixtures.sh
 
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "${tmp}"; }
@@ -75,7 +77,9 @@ export XDG_CONFIG_HOME="${tmp}/.config"
 export XDG_STATE_HOME="${tmp}/.local/state"
 "${ROOT}/scripts/install-to-local.sh"
 test -x "${tmp}/.local/bin/a50x-spotify-pause"
-grep -q 'WATCHER_VERSION=f4-mpris-multi-1' "${tmp}/.local/bin/a50x-spotify-pause"
+test -x "${tmp}/.local/bin/switch-to-a50x-sink"
+grep -q 'WATCHER_VERSION=f5-route-1' "${tmp}/.local/bin/a50x-spotify-pause"
+grep -qE '^ROUTE_ENABLE=' "${tmp}/.config/astro-a50x-spotify-pause/config"
 for lib in classify-remove-intent.sh hid.sh mpris.sh; do
   test -f "${tmp}/.local/bin/a50x-spotify-pause-lib/${lib}"
 done

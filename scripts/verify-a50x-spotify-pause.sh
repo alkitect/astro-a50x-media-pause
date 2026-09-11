@@ -7,6 +7,7 @@ CFG_FILE="${CFG_DIR}/config"
 SYSTEMD_USER="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user"
 UNIT="${SYSTEMD_USER}/a50x-spotify-pause.service"
 BIN="${HOME}/.local/bin/a50x-spotify-pause"
+SWITCH_BIN="${HOME}/.local/bin/switch-to-a50x-sink"
 
 ENABLED=0
 DRY_RUN=1
@@ -55,6 +56,7 @@ echo "ENABLED=${ENABLED} DRY_RUN=${DRY_RUN} AUTO_RESUME=${AUTO_RESUME}"
 echo "SINK_MATCH=${SINK_MATCH}"
 echo "PLAYER=${PLAYER}"
 echo "PLAYER_MODE=${PLAYER_MODE:-single}"
+echo "ROUTE_ENABLE=${ROUTE_ENABLE:-0}"
 
 if command -v playerctl >/dev/null 2>&1; then
   echo "playerctl -l:"
@@ -64,12 +66,35 @@ fi
 if [[ "${ENABLED}" == "1" && "${DRY_RUN}" == "1" ]]; then
   fail "ENABLED=1 but DRY_RUN=1 — watcher will not actually pause (set DRY_RUN=0)"
 fi
+if [[ "${ROUTE_ENABLE:-0}" == "1" && "${DRY_RUN}" == "1" ]]; then
+  fail "ROUTE_ENABLE=1 but DRY_RUN=1 — routing will only log would-route (set DRY_RUN=0 for live moves)"
+fi
 
 PLAYER_MODE="${PLAYER_MODE:-single}"
 HID_ENABLE="${HID_ENABLE:-0}"
+ROUTE_ENABLE="${ROUTE_ENABLE:-0}"
 HID_MATCH_HEX="${HID_MATCH_HEX:-}"
 HID_SOFT_OFF_PREFIX="${HID_SOFT_OFF_PREFIX:-}"
 HID_SOFT_ON_PREFIX="${HID_SOFT_ON_PREFIX:-}"
+if [[ "${ROUTE_ENABLE}" == "1" ]]; then
+  if [[ -x "${SWITCH_BIN}" ]]; then
+    ok "switch-to-a50x-sink present"
+  else
+    fail "ROUTE_ENABLE=1 but missing executable ${SWITCH_BIN} (run install-to-local.sh)"
+  fi
+  if [[ "${HID_ENABLE}" != "1" ]]; then
+    warn "ROUTE_ENABLE=1 with HID_ENABLE=0 — undock/soft-on edges will not route (startup/manual only)"
+  fi
+  if command -v pactl >/dev/null 2>&1 && [[ -n "${SINK_MATCH}" && "${SINK_MATCH}" != "REPLACE_ME_FROM_DISCOVER" ]]; then
+    def="$(pactl get-default-sink 2>/dev/null || true)"
+    echo "default sink: ${def}"
+    if pactl list short sinks 2>/dev/null | grep -qiE "${SINK_MATCH}"; then
+      ok "SINK_MATCH hits at least one sink"
+    else
+      warn "SINK_MATCH matches no current sinks (headset off?)"
+    fi
+  fi
+fi
 if [[ "${HID_ENABLE}" == "1" ]]; then
   if ! command -v xxd >/dev/null 2>&1; then
     fail "HID_ENABLE=1 but xxd missing (apt install xxd)"
@@ -105,6 +130,7 @@ if [[ "${HID_ENABLE}" == "1" ]]; then
         break
       elif [[ -r "${dev}" ]]; then
         warn "hidraw readable but not writable: ${dev}"
+
       fi
     fi
   done
@@ -262,10 +288,30 @@ if [[ -x "${BIN}" ]]; then
       done
       return 1
     }
-    if grep -q 'WATCHER_VERSION=f4-mpris-multi-1' "${BIN}"; then
-      ok "WATCHER_VERSION=f4-mpris-multi-1"
+    if grep -q 'WATCHER_VERSION=f5-route-1' "${BIN}"; then
+      ok "WATCHER_VERSION=f5-route-1"
     else
-      fail "installed binary missing WATCHER_VERSION=f4-mpris-multi-1 (run install-to-local.sh)"
+      fail "installed binary missing WATCHER_VERSION=f5-route-1 (run install-to-local.sh)"
+    fi
+    if [[ -x "${SWITCH_BIN}" ]]; then
+      if [[ -n "${TOPIC_ROOT:-}" && -f "${TOPIC_ROOT}/scripts/switch-to-a50x-sink.sh" ]]; then
+        rh="$(sha256sum "${TOPIC_ROOT}/scripts/switch-to-a50x-sink.sh" | awk '{print $1}')"
+        ih="$(sha256sum "${SWITCH_BIN}" | awk '{print $1}')"
+        if [[ "${rh}" == "${ih}" ]]; then
+          ok "switch-to-a50x-sink matches repo (${rh:0:12}…)"
+        else
+          fail "switch-to-a50x-sink != repo (run install-to-local.sh)"
+        fi
+      else
+        ok "switch-to-a50x-sink present"
+      fi
+    else
+      warn "switch-to-a50x-sink missing (needed when ROUTE_ENABLE=1)"
+    fi
+    if grep_deployed 'route_a50x_if_enabled' && grep_deployed 'ROUTE_ENABLE'; then
+      ok "ADR-004 route hook present"
+    else
+      fail "deployed tree missing route_a50x_if_enabled / ROUTE_ENABLE"
     fi
     if grep_deployed 'do_pause "sink-input-remove-soft"'; then
       fail "deployed tree still pauses via sink-input-remove-soft"
@@ -304,7 +350,7 @@ if [[ -f "${UNIT}" ]]; then
   if systemctl --user is-active a50x-spotify-pause.service >/dev/null 2>&1; then
     ok "unit active"
     if [[ "${DRY_RUN}" == "1" ]]; then
-      fail "unit active with DRY_RUN=1 — not a live pause setup (set DRY_RUN=0)"
+      fail "unit active with DRY_RUN=1 — not a live pause/route setup (set DRY_RUN=0)"
     fi
   else
     warn "unit not active"
