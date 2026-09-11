@@ -76,12 +76,14 @@ install -m0644 "${ROOT}/systemd/user/a50x-spotify-pause.service.example" \
   "${SYSTEMD_USER}/a50x-spotify-pause.service"
 echo "Installed ${SYSTEMD_USER}/a50x-spotify-pause.service"
 
-if command -v systemctl >/dev/null 2>&1; then
+if [[ -z "${ALKITECT_CI_TMP:-}" ]] && command -v systemctl >/dev/null 2>&1; then
   systemctl --user daemon-reload
   if systemctl --user is-active a50x-spotify-pause.service >/dev/null 2>&1; then
     systemctl --user restart a50x-spotify-pause.service
     echo "Restarted a50x-spotify-pause.service"
   fi
+elif [[ -n "${ALKITECT_CI_TMP:-}" ]]; then
+  echo "ALKITECT_CI_TMP=1: skipped systemctl (unit file under tmp HOME only)"
 fi
 
 echo ""
@@ -149,6 +151,10 @@ if [[ "${ENABLE_AUTOMATION}" -eq 1 ]]; then
   echo "Running verify before enable..."
   if ! "${BIN}/verify-a50x-spotify-pause"; then
     echo "Refusing --enable-automation: verify failed" >&2
+    exit 1
+  fi
+  if [[ -n "${ALKITECT_CI_TMP:-}" ]]; then
+    echo "ALKITECT_CI_TMP=1: refusing --enable-automation (would touch live systemctl)" >&2
     exit 1
   fi
   echo "Enabling a50x-spotify-pause.service (--enable-automation)..."

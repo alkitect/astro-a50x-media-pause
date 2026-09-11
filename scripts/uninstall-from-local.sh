@@ -7,9 +7,11 @@ CFG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/astro-a50x-spotify-pause"
 SYSTEMD_USER="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user"
 UDEV_RULE="/etc/udev/rules.d/99-logitech-a50x-hid.rules"
 
-if command -v systemctl >/dev/null 2>&1; then
+if [[ -z "${ALKITECT_CI_TMP:-}" ]] && command -v systemctl >/dev/null 2>&1; then
   systemctl --user disable --now a50x-spotify-pause.service 2>/dev/null || true
   systemctl --user daemon-reload 2>/dev/null || true
+elif [[ -n "${ALKITECT_CI_TMP:-}" ]]; then
+  echo "ALKITECT_CI_TMP=1: skipped systemctl disable"
 fi
 
 rm -f "${SYSTEMD_USER}/a50x-spotify-pause.service"
