@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.2 — 2026-09-14
+
+- Docs: portal README (Quick start H3s, tip-vs-tag Releases surface, Issues help line, flag table).
+
 ## 0.7.1 — 2026-09-11
 
 - Fix dual A50 pro-audio sinks: keep `SINK_MATCH` broad for pause gates; add optional `ROUTE_SINK_MATCH` for preferred Game/Pro 1 routing (`WATCHER_VERSION=f5-route-2`).

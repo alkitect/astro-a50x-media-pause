@@ -6,19 +6,19 @@ README variant: A
 
 First public tag: v0.6.1
 
-Latest tag: **v0.7.1** (`f5-route-2` dual-sink pause gate + `ROUTE_SINK_MATCH` / post-pause override grace)
+Latest tag: **v0.7.2** (portal README rewrite; product still `f5-route-2`)
 
 Default first tag is 0.1.0. Never copy another alkitect repo’s tag. Use `RC-BEFORE-1.0` in this file only for an intentional 0.9.x RC.
 
 ```bash
 ./scripts/ci-check.sh
-git tag -a v0.7.1 -m "v0.7.1"
+git tag -a v0.7.2 -m "v0.7.2"
 git push origin main
-git push origin v0.7.1
-gh release create v0.7.1 --title "v0.7.1" --notes-file - <<'EOF'
-## 0.7.1
+git push origin v0.7.2
+gh release create v0.7.2 --title "v0.7.2" --notes-file - <<'EOF'
+## 0.7.2
 
-Dual A50 pro-audio sink fix: broad `SINK_MATCH` for pause gates; optional `ROUTE_SINK_MATCH` for Pro 1 / Game; always-log soft-off skips; post-pause override grace (`f5-route-2`).
+Portal README rewrite (Quick start H3s, Releases surface, Issues help). Product behavior unchanged from 0.7.1 (`f5-route-2`).
 EOF
 ```
 
