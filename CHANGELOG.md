@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.7.3 — 2026-09-14
+
+- Install: restore user units from `automation.wanted` or prior enablement; uninstall keeps the marker unless `--purge-config`.
+- Helper: vendored `scripts/lib/automation-wanted.sh`.
+
 ## 0.7.2 — 2026-09-14
 
 - Docs: portal README (Quick start H3s, tip-vs-tag Releases surface, Issues help line, flag table).

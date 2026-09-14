@@ -6,19 +6,18 @@ README variant: A
 
 First public tag: v0.6.1
 
-Latest tag: **v0.7.2** (portal README rewrite; product still `f5-route-2`)
+Latest tag: **v0.7.3** (automation.wanted restore; product still `f5-route-2`)
 
 Default first tag is 0.1.0. Never copy another alkitect repo’s tag. Use `RC-BEFORE-1.0` in this file only for an intentional 0.9.x RC.
 
 ```bash
 ./scripts/ci-check.sh
-git tag -a v0.7.2 -m "v0.7.2"
-git push origin main
-git push origin v0.7.2
-gh release create v0.7.2 --title "v0.7.2" --notes-file - <<'EOF'
-## 0.7.2
+git tag -a v0.7.3 -m "v0.7.3"
+git push origin main v0.7.3
+gh release create v0.7.3 --title "v0.7.3" --notes-file - <<'EOF'
+## 0.7.3
 
-Portal README rewrite (Quick start H3s, Releases surface, Issues help). Product behavior unchanged from 0.7.1 (`f5-route-2`).
+Restore user units from automation.wanted or prior enablement; marker kept unless --purge-config.
 EOF
 ```
 

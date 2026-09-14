@@ -4,11 +4,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/lib/automation-wanted.sh
+source "${ROOT}/scripts/lib/automation-wanted.sh"
 BIN="${HOME}/.local/bin"
 CFG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/astro-a50x-spotify-pause"
 SYSTEMD_USER="${XDG_CONFIG_HOME:-${HOME}/.config}/systemd/user"
 ENABLE_AUTOMATION=0
 WITH_TOOLS=0
+UNIT="a50x-spotify-pause.service"
 
 for arg in "$@"; do
   case "${arg}" in
@@ -27,6 +30,8 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+aw_snapshot_units "${UNIT}"
 
 mkdir -p "${BIN}" "${CFG_DIR}" "${SYSTEMD_USER}"
 
@@ -153,11 +158,10 @@ if [[ "${ENABLE_AUTOMATION}" -eq 1 ]]; then
     echo "Refusing --enable-automation: verify failed" >&2
     exit 1
   fi
-  if [[ -n "${ALKITECT_CI_TMP:-}" ]]; then
-    echo "ALKITECT_CI_TMP=1: refusing --enable-automation (would touch live systemctl)" >&2
-    exit 1
-  fi
-  echo "Enabling a50x-spotify-pause.service (--enable-automation)..."
-  systemctl --user enable --now a50x-spotify-pause.service
+  aw_enable_units "--enable-automation" "${UNIT}"
+  aw_mark_wanted "${CFG_DIR}"
   echo "Service enabled."
+elif aw_should_restore "${CFG_DIR}"; then
+  aw_enable_units "restored (snapshot/marker)" "${UNIT}"
+  aw_mark_wanted "${CFG_DIR}"
 fi
